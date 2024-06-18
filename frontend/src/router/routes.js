@@ -67,7 +67,7 @@ const routes = [
       {
         path: '/kanban',
         name: 'Kanban',
-        component: KanbanBoard
+        component: () => import('pages/relatorios/RelatorioContatosEstado')
       }
     ]
   },
