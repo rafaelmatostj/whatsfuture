@@ -1,4 +1,4 @@
-<template>
+<template style="background-image: url(../img/background-login.619401ad.png);" >
   <q-layout class="vertical-center">
     <q-page-container>
       <q-page class="flex justify-end items-center">
@@ -27,7 +27,7 @@
 
           <q-card-section >
             <q-input
-              style="color: #D9D9D9;"
+              style="color: #fff; border-color:#fff;"
               class="q-mb-md"
               clearable
               rounded
@@ -41,7 +41,7 @@
             >
               <template v-slot:prepend  >
                 <q-icon
-                  style="color: #D9D9D9;  "
+                  style="color: #fff; border-color:#fff;"
                   name="mdi-email-outline"
                   class="cursor-pointer"
                   color='primary'
