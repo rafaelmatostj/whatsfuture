@@ -306,6 +306,7 @@ const objMenuAdmin = [
     icon: 'mdi-view-dashboard-variant',
     routeName: 'painel-atendimentos'
   },
+  
   {
     title: 'Relatórios',
     caption: 'Relatórios gerais',
@@ -317,6 +318,12 @@ const objMenuAdmin = [
     caption: 'Admin de usuários',
     icon: 'mdi-account-group',
     routeName: 'usuarios'
+  },
+  {
+    title: 'Kanban',  // Novo item
+    caption: 'Quadro Kanban',
+    icon: 'mdi-view-kanban',  // Ícone Kanban
+    routeName: 'kanban'
   },
   {
     title: 'Filas',
