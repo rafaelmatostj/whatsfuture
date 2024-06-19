@@ -22,7 +22,7 @@
           </q-card-section>
           <q-card-section class="text-primary">
             <div class="text-h6-login">Bem vindo!</div>
-            <div class="text-caption-login"> ...</div>
+            <div class="text-caption-login"> Faça Login...</div>
           </q-card-section>
 
           <q-card-section >
