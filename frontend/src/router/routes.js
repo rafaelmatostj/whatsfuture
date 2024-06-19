@@ -63,11 +63,6 @@ const routes = [
         path: 'contatos-por-estado',
         name: 'contatos-por-estado',
         component: () => import('pages/relatorios/RelatorioContatosEstado')
-      },
-      {
-        path: '/kanban',
-        name: 'Kanban',
-        component: () => import('pages/relatorios/RelatorioContatosEstado')
       }
     ]
   },
