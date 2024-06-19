@@ -27,7 +27,7 @@
 
           <q-card-section >
             <q-input
-              style="color: #D9D9D9;"
+              style="color: #D9D9D9; font-color:#fff"
               class="q-mb-md"
               clearable
               rounded
@@ -41,7 +41,7 @@
             >
               <template v-slot:prepend  >
                 <q-icon
-                  style="color: #D9D9D9;  "
+                  style="color: #D9D9D9; font-color:#fff  "
                   name="mdi-email-outline"
                   class="cursor-pointer"
                   color='primary'
