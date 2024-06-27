@@ -28,7 +28,7 @@
           <q-card-section >
             <q-input
               style="color: #fff !important;"
-              class="q-mb-md input-color"
+              class="q-mb-md "
               clearable
               rounded
               v-model="form.email"
@@ -50,6 +50,7 @@
             </q-input>
 
             <q-input
+            style="color: #fff !important;"
               outlined
               rounded
               placeholder="Digite sua senha"
@@ -165,7 +166,7 @@ export default {
 </script>
 <style scoped>
 .input-color{
-  color: #FFFFFF !important;
+  color: #FFF !important;
 }
 #login-app {
   background: none;
