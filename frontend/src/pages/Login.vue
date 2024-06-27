@@ -27,7 +27,7 @@
 
           <q-card-section >
             <q-input
-              style="color: #D9D9D9; font-color:#fff"
+              style="color: #fff"
               class="q-mb-md"
               clearable
               rounded
@@ -41,15 +41,15 @@
             >
               <template v-slot:prepend  >
                 <q-icon
-                  style="color: #D9D9D9; font-color:#fff  "
+                  style="color: #fff;"
                   name="mdi-email-outline"
                   class="cursor-pointer"
-                  color='primary'
                 />
               </template>
             </q-input>
 
             <q-input
+            style="color: #fff"
               outlined
               rounded
               placeholder="Digite sua senha"
@@ -61,11 +61,12 @@
                 <q-icon
                   name="mdi-shield-key-outline"
                   class="cursor-pointer"
-                  color='primary'
+                  style="color: #fff;"
                 />
               </template>
               <template v-slot:append>
                 <q-icon
+                  style="color: #fff;"
                   :name="isPwd ? 'visibility_off' : 'visibility'"
                   class="cursor-pointer"
                   @click="isPwd = !isPwd"
