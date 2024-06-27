@@ -50,7 +50,7 @@
             </q-input>
 
             <q-input
-            style="color: #fff !important;"
+             class="cor-input"
               outlined
               rounded
               placeholder="Digite sua senha"
@@ -165,6 +165,9 @@ export default {
 }
 </script>
 <style scoped>
+.cor-input{
+  color:#FFF;
+}
 .input-color{
   color: #FFF !important;
 }
@@ -221,8 +224,8 @@ export default {
   margin: 0 0 50px;
 }
 
-input {
-  color: #FFFFFF!important;
+q-input {
+  color: #FFF!important;
 }
 
 .index .ivu-row-flex {
