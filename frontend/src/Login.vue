@@ -165,6 +165,9 @@ export default {
 }
 </script>
 <style scoped>
+.q-field__native{
+  color: #fff;
+}
 .cor-input{
   color:#FFF;
 }
@@ -225,7 +228,7 @@ export default {
 }
 
 q-input {
-  color: #FFF!important;
+  color: #fff!important;
 }
 
 .index .ivu-row-flex {
