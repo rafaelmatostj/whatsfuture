@@ -165,6 +165,9 @@ export default {
 }
 </script>
 <style scoped>
+body{
+  background-image: url('../assets/background-login.png')
+}
 .q-field__native{
   color: #fff;
 }
