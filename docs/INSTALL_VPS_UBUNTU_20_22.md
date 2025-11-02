@@ -83,101 +83,101 @@ docker run --name redis-izing -e TZ="America/Sao_Paulo" -p 6379:6379 --restart=a
 ```
 
 
-12. Instalar Portainer no Docker
+11. Instalar Portainer no Docker
 
 ```bash
 docker run -d --name portainer -p 9000:9000 -p 9443:9443 --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
 ```
 
-13. baixar chave repositorio google crome
+12. baixar chave repositorio google crome
 
 ```bash
 wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmour -o /usr/share/keyrings/chrome-keyring.gpg 
 ```
 
-14. adicionar repositorio
+13. adicionar repositorio
 
 ```bash
 sudo sh -c 'echo "deb [arch=amd64,arm64,ppc64el signed-by=/usr/share/keyrings/chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list'
 ```
 
-15. update apt
+14. update apt
 
 ```bash
 sudo apt update 
 ```
 
-16. instalar google crome
+15. instalar google crome
 
 ```bash
 sudo apt install -y google-chrome-stable 
 ```
 
-17. remover arquivo padrao nginx
+16. remover arquivo padrao nginx
 
 ```bash
 rm /etc/nginx/sites-enabled/default
 ```
 
 
-18. Criar o usário deploy
+17. Criar o usário deploy
 
 ```bash
 adduser deploy
 ```
 
-19. Permisão sudo deploy
+18. Permisão sudo deploy
 ```bash
 usermod -aG sudo deploy
 ```
 
-20. Permisão docker deploy
+19. Permisão docker deploy
 ```bash
 usermod -aG docker deploy
 ```
 
-21. Alterar para o novo usuário
+20. Alterar para o novo usuário
 
 ```bash
 su deploy
 ```
 
-22. Realizar o download do node 20.x
+21. Realizar o download do node 20.x
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 ```
 
-23. Instalar o node
+22. Instalar o node
 
 ```bash
 sudo apt-get install -y nodejs
 ```
 
-24. Acessar o diretório raiz
+23. Acessar o diretório raiz
 
 ```bash
 cd ~
 ```
 
-25. baixar o repositório do izing.open.io
+24. baixar o repositório do izing.open.io
 
 ```bash
 git clone https://github.com/cleitonme/izing.open.io.git izing.io
 ```
 
-26. Copiar o env de exemplo para o backend
+25. Copiar o env de exemplo para o backend
 ```bash 
 cp izing.io/backend/.env.example izing.io/backend/.env
 ```
 
-27. Rodar o comando abaixo 2x para gerar JWT_SECRET e JWT_REFRESH_SECRET
+26. Rodar o comando abaixo 2x para gerar JWT_SECRET e JWT_REFRESH_SECRET
 
 ```bash
 openssl rand -base64 32
 ```
 
-28. Editar os dados abaixo e colar os valores gerados no item 31.
+27. Editar os dados abaixo e colar os valores gerados no item 31.
 
 ```bash
 # ambiente
@@ -262,105 +262,113 @@ USER_LIMIT=99
 CONNECTIONS_LIMIT=99
 ```
 
-29. Abrir para edição o arquivo .env com o comando abaixo e prencher com os dados acima. Para salvar se usa Ctrl + x
+28. Abrir para edição o arquivo .env com o comando abaixo e prencher com os dados acima. Para salvar se usa Ctrl + x
 
 ```bash
 nano izing.io/backend/.env
 ```
 
-30. Acessando o backend
+29. Acessando pasta do backend
 
 ```bash
 cd izing.io/backend
 ```
 
-31. Instalando as dependências
+30. Instalando as dependências
 
 ```bash
 npm install --force
 ```
 
-32. Buildando o backend
+31. Buildando o backend
 
 ```bash
 npm run build
 ```
 
-. Reniciando docker
+32. Reniciando docker
 ```bash
-docker container restart portainer
 docker container restart postgresql
+```
+
+33. Reniciando docker
+```bash
 docker container restart redis-izing
 ```
 
-33. Criando as tabelas no BD
+34. Reniciando docker
+```bash
+docker container restart portainer
+```
+
+34. Criando as tabelas no BD
 
 ```bash
 npx sequelize db:migrate
 ```
 
-34. Inserindo dados em algumas tabelas do BD
+35. Inserindo dados em algumas tabelas do BD
 
 ```bash
 npx sequelize db:seed:all
 ```
 
-35. Instalando o PM2
+36. Instalando o PM2
 
 ```bash
 sudo npm install -g pm2
 ```
 
-36. Iniciando o backend com PM2
+37. Iniciando o backend com PM2
 
 ```bash
 pm2 start dist/server.js --name izing-backend
 ```
 
-37. Gerar Startup
+38. Gerar Startup
 
 ```bash
 pm2 startup ubuntu -u deploy
 ```
 
-38. Gerar status parte 2
+39. Gerar status parte 2
 
 ```bash
 sudo env PATH=$PATH:/usr/bin pm2 startup ubuntu -u deploy --hp /home/deploy
 ```
 
-39. Acessando o frontend
+40. Acessando pasta do frontend
 
 ```bash
 cd ../frontend
 ```
 
-40. copiando .env do example
+41. copiando .env do example
 
 ```bash
 cp .env.example .env
 ```
 
-41. Editando o arquivo .env com o comando abaixo e prencher com os dados do item 42. Para salvar se usa Ctrl + x
+42. Editando o arquivo .env com o comando abaixo e prencher com os dados do item 42. Para salvar se usa Ctrl + x
 
 ```bash
 nano .env
 ```
 
-42. Dados env frontend
+43. Dados env frontend
 
 ```bash
 VUE_URL_API='https://backend.seusite.com.br'
 VUE_FACEBOOK_APP_ID='23156312477653241'
 ```
 
-43. Criar arquivo server.js com dados do item 44. Para salvar se usa Ctrl + x
+44. Criar arquivo server.js com dados do item 44. Para salvar se usa Ctrl + x
 
 ```bash
 nano server.js
 ```
 
-44. Dados para gerar server.js
+45. Dados para gerar server.js
 ```bash
 // simple express server to run frontend production build;
 const express = require('express')
@@ -373,41 +381,41 @@ app.get('/*', function (req, res) {
 app.listen(4444)
 ```
 
-45. Instalando as dependências
+46. Instalando as dependências
 ```bash
 npm install --force
 ```
 
-46. Instalando Quasar
+47. Instalando Quasar
 
 ```bash
 npm i @quasar/cli
 ```
 
-47. Buildando o frontend
+48. Buildando o frontend
 
 ```bash
 npm run build
 ```
 
-48. Iniciando o frontend com PM2
+49. Iniciando o frontend com PM2
 ```bash
 pm2 start server.js --name izing-frontend
 ```
 
-49. Salvando os serviços iniciados pelo PM2
+50. Salvando os serviços iniciados pelo PM2
 
 ```bash
 pm2 save
 ```
 
-50. Listar os serviços iniciados pelo PM2
+51. Listar os serviços iniciados pelo PM2
 
 ```bash
 pm2 list
 ```
 
-51. Editar os dados abaixo com a URL que será usada para acessar o frontend.
+52. Editar os dados abaixo com a URL que será usada para acessar o frontend.
 
 ```bash
 server {
@@ -428,13 +436,13 @@ server {
 }
 ```
 
-52. Criar e editar o arquivo izing-frontend com o comando abaixo e prencher com os dados do item 52. Para salvar se usa Ctrl + x
+53. Criar e editar o arquivo izing-frontend com o comando abaixo e prencher com os dados do item 52. Para salvar se usa Ctrl + x
 
 ```bash
 sudo nano /etc/nginx/sites-available/izing-frontend
 ```
 
-53. Editar os dados abaixo com a URL que será usada para acessar o backend.
+54. Editar os dados abaixo com a URL que será usada para acessar o backend.
 
 ```bash
 server {
@@ -455,69 +463,69 @@ server {
 }
 ```
 
-54. Criar e editar o arquivo izing-frontend com o comando abaixo e prencher com os dados do item 54. Para salvar se usa Ctrl + x
+55. Criar e editar o arquivo izing-frontend com o comando abaixo e prencher com os dados do item 54. Para salvar se usa Ctrl + x
 
 ```bash
 sudo nano /etc/nginx/sites-available/izing-backend
 ```
 
-55. Criar link simbólico para o arquivo izing-frontend
+56. Criar link simbólico para o arquivo izing-frontend
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/izing-frontend /etc/nginx/sites-enabled/
 ```
 
 
-56. Criar link simbólico para o arquivo izing-backend
+57. Criar link simbólico para o arquivo izing-backend
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/izing-backend /etc/nginx/sites-enabled/
 ```
 
-57. Editar o arquivo de configuração do nginx com o comando abaixo e prencher com os dados do item 59. adicionar antes# server_tokens off;. Para salvar se usa Ctrl + x
+58. Editar o arquivo de configuração do nginx com o comando abaixo e prencher com os dados do item 59. adicionar antes# server_tokens off;. Para salvar se usa Ctrl + x
 
 ```bash
 sudo nano /etc/nginx/nginx.conf
 ```
 
-58. adicionar antes# server_tokens off;
+59. adicionar antes# server_tokens off;
 
 ```bash
 underscores_in_headers on;	
 client_max_body_size 100M;
 large_client_header_buffers 16 5120k;
 ```
-59. Testar as configurações do nginx
+60. Testar as configurações do nginx
 
 ```bash
 sudo nginx -t
 ```
 
-60. Restartar o nginx
+61. Restartar o nginx
 
 ```bash
 sudo service nginx restart
 ```
 
-61. Instalar o suporte a pacotes Snap
+62. Instalar o suporte a pacotes Snap
 
 ```bash
 sudo apt-get install snapd
 ```
 
-62. Instalar o pacote do notes
+63. Instalar o pacote do notes
 
 ```bash
 sudo snap install notes
 ```
 
-63. Instalar o pacote do certbot(SSL)
+64. Instalar o pacote do certbot(SSL)
 
 ```bash
 sudo snap install --classic certbot
 ```
 
-64. Gerar certificado
+65. Gerar certificado
 
 ```bash
 sudo certbot --nginx
@@ -569,25 +577,7 @@ Na pasta backend execute
 npm r whatsapp-web.js
 ```
 ```bash
-npm i whatsapp-web.js@^1.24.0
-```
-```bash
-rm .wwebjs_auth -Rf
-```
-```bash
-rm .wwebjs_cache -Rf
-```
-```bash
-pm2 restart all
-```
-
-2. Versão EXODUS
-Na pasta backend execute
-```bash
-npm r whatsapp-web.js
-```
-```bash
-npm install github:pedroslopez/whatsapp-web.js#webpack-exodus
+npm install github:pedroslopez/whatsapp-web.js
 ```
 ```bash
 rm .wwebjs_auth -Rf
@@ -623,3 +613,20 @@ docker container restart portainer
 ```
 
 Depois acesse novamente url http://seuip:9000/
+
+
+## Recomendação de VPS boa e barata
+
+-  [Powerful cloud VPS & Web hosting.](https://control.peramix.com/?affid=58)
+
+- Cupom 25% desconto "WHAZING"
+
+```bash
+WHAZING
+```
+
+## Consultoria particular
+
+Para quem gostaria de uma consultoria ou que eu faça instalação pode chamar no whatsapp (será cobrado por isso) 48 999416725
+
+-  [Versão baseada no izing com Painel SaaS e API Baileys](https://github.com/cleitonme/Whazing-SaaS)

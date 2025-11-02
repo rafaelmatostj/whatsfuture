@@ -18,7 +18,7 @@
           <q-tooltip>Menu</q-tooltip>
         </q-btn>
 
-        <!-- <q-btn
+        <q-btn
           flat
           no-caps
           no-wrap
@@ -27,11 +27,11 @@
           v-if="$q.screen.gt.xs"
         >
           <q-img
-            src="/logo_whats.png"
+            src="/logo_izing.png"
             spinner-color="primary"
             style="height: 50px; width: 140px"
           />
-        </q-btn> -->
+        </q-btn>
 
         <q-space />
 

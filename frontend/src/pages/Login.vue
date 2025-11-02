@@ -1,7 +1,7 @@
 <template>
   <q-layout class="vertical-center">
     <q-page-container>
-      <q-page class="flex justify-end items-center">
+      <q-page class="flex justify-center items-center">
         <q-ajax-bar
           position="top"
           color="primary"
@@ -10,49 +10,47 @@
         <q-card
           bordered
           class="card q-pa-md shadow-10"
-          style=" background-color: #101010; height:100%; border-color: transparent;  "
+          style="border-top: 5px solid #3E72AF; background-color: rgba(255,255,255,0.75); border-radius: 20px"
         >
           <q-card-section class="text-primary text-center">
             <q-img
-              src="../assets/logo-ofical.png"
+              src="/logo_izing.png"
               spinner-color="white"
-              style="height: 111.54px; max-width: 300px"
+              style="height: 120px; max-width: 300px"
               class="q-mb-lg q-px-md"
             />
+            <q-separator spaced />
           </q-card-section>
           <q-card-section class="text-primary">
-            <div class="text-h6-login">Bem vindo!</div>
-            <div class="text-caption-login">Faça login...</div>
+            <div class="text-h6">Bem vindo!</div>
+            <div class="text-caption text-grey">Faça login...</div>
           </q-card-section>
 
-          <q-card-section >
+          <q-card-section>
             <q-input
-              style="color: #fff"
               class="q-mb-md"
               clearable
               rounded
               v-model="form.email"
-              placeholder="seuemail@provedor.com"
+              placeholder="meu@email.com"
               @blur="$v.form.email.$touch"
               :error="$v.form.email.$error"
               error-message="Deve ser um e-mail válido."
               outlined
               @keypress.enter="fazerLogin"
             >
-              <template v-slot:prepend  >
+              <template v-slot:prepend>
                 <q-icon
-                  style="color: #fff;"
                   name="mdi-email-outline"
                   class="cursor-pointer"
+                  color='primary'
                 />
               </template>
             </q-input>
 
             <q-input
-            style="color: #fff"
               outlined
               rounded
-              placeholder="Digite sua senha"
               v-model="form.password"
               :type="isPwd ? 'password' : 'text'"
               @keypress.enter="fazerLogin"
@@ -61,12 +59,11 @@
                 <q-icon
                   name="mdi-shield-key-outline"
                   class="cursor-pointer"
-                  style="color: #fff;"
+                  color='primary'
                 />
               </template>
               <template v-slot:append>
                 <q-icon
-                  style="color: #fff;"
                   :name="isPwd ? 'visibility_off' : 'visibility'"
                   class="cursor-pointer"
                   @click="isPwd = !isPwd"
@@ -78,7 +75,7 @@
             <q-space />
             <q-btn
               class="q-mr-sm q-my-lg"
-              style="width: 100%;padding-top:5px;padding-bottom:5px; font-family:'Poppins', sans-serif; font-size: 16px; font-weight: 700;"
+              style="width: 150px"
               color="primary"
               rounded
               :loading="loading"
@@ -168,26 +165,6 @@ export default {
 #login-app {
   background: none;
 }
-.form-login{
-  color: #FFFFFF important;
-  border-color: #FFFFFF ;
-}
-.text-h6-login{
-  font-size: 40px;
-  color: #FFFFFF;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  text-align: center;
-  margin-top: -50px;
-}
-.text-caption-login {
-  font-size: 20px;
-  opacity: 0.5;
-  color: #FFFFFF;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  text-align: center;
-}
 
 .index {
   width: 100%;
@@ -240,8 +217,7 @@ export default {
 
 .card {
   width: 100%;
-  max-width: 375px;
-  margin-right: 10%;
+  max-width: 430px;
 }
 
 .q-img__image {

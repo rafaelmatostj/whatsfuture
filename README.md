@@ -1,8 +1,22 @@
-[![Grupo do WhatsApp](https://img.shields.io/badge/WhatsApp-Grupo%20IZING-brightgreen.svg)](https://chat.whatsapp.com/IIReEheixAx27ZbneHpskP)
+[![Grupo do WhatsApp](https://img.shields.io/badge/WhatsApp-Grupo%20Whazing-brightgreen.svg)](https://grupo.whazing.com.br)
 
 [Fork do projeto ldurans](https://github.com/ldurans/izing.open.io)
 
-# Izing com painel SaaS
+# Izing com painel SaaS - Hub NotificaMe(facebook e instagram) - Wavoip
+
+Cupom desconto Notifica Me - cadastre pelo link https://hub.whazing.com.br
+
+```bash
+whazing
+```
+
+https://wavoip.com/
+
+- Cupom 50% desconto Wavoip
+
+```bash
+whazing
+```
 
 Um sistema para gestão de atendimento multicanais centralizado.
 
@@ -62,8 +76,18 @@ Este projeto não é afiliado, associado, autorizado, endossado por, ou de qualq
 
 -  [Powerful cloud VPS & Web hosting.](https://control.peramix.com/?affid=58)
 
+- Cupom 25% desconto "WHAZING"
+
+```bash
+WHAZING
+```
+
+#### Curtiu? Apoie o projeto!! Com sua doação, será possível continuar com as atualizações. Segue QR code (PIX)  
+
+[<img src="donate.jpg" height="160" width="180"/>](donate.jpg)
+
 ## Consultoria particular
 
-Para quem gostaria de uma consultoria ou que eu faça instalação pode chamar no whatsapp (será cobrado por isso) 48 999416725
+Para quem gostaria de uma consultoria ou que eu faça instalação pode chamar no whatsapp (será cobrado por isso) (48) 3197-0599
 
--  [Versão API Bayles](https://github.com/cleitonme/izingpro.bayles)
+-  [Versão baseada no izing com Painel SaaS e API Baileys](https://github.com/cleitonme/Whazing-SaaS)

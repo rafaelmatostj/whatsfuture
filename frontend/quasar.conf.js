@@ -125,11 +125,11 @@ module.exports = function (ctx) {
     // https://quasar.dev/quasar-cli/developing-pwa/configuring-pwa
     pwa: {
       workboxPluginMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
-      workboxOptions: {maximumFileSizeToCacheInBytes: 5000000,}, // only for GenerateSW
+      workboxOptions: { maximumFileSizeToCacheInBytes: 5000000 }, // only for GenerateSW
       manifest: {
-        name: 'WhatsFuture',
-        short_name: 'WhatsFuture',
-        description: 'Use todos os superpoderes do WhatsApp',
+        name: 'IZING',
+        short_name: 'IZING',
+        description: 'Bot Multi-atendimento para whatsapp',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
@@ -193,7 +193,7 @@ module.exports = function (ctx) {
 
       builder: {
         // https://www.electron.build/configuration/configuration
-        appId: 'WhatsFuture'
+        appId: 'IZING'
       },
 
       // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration
