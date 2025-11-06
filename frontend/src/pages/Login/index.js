@@ -282,7 +282,7 @@ const Login = () => {
                                     </Link>
                                 )}
                             </Grid>
-                            <Grid item>
+                            {/* <Grid item>
                                 <Link
                                     component={RouterLink}
                                     to="/forgetpsw"
@@ -290,7 +290,7 @@ const Login = () => {
                                 >
                                     Esqueceu a senha?
                                 </Link>
-                            </Grid>
+                            </Grid> */}
                         </Grid>
                     </form>
                 </div>
