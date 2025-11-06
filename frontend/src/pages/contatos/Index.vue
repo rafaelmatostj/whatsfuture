@@ -303,13 +303,6 @@
             rounded
             @click="handleImportCSV"
           />
-          <q-btn
-            class="q-ml-md"
-            color="primary"
-            label="Baixar Modelo"
-            rounded
-            @click="downloadModelCsv"
-          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -413,16 +406,6 @@ export default {
     }
   },
   methods: {
-    downloadModelCsv () {
-      const csvContent = 'nome;numero\nCliente;5511999999999'
-      const blob = new Blob([csvContent], { type: 'text/csv' })
-      const link = document.createElement('a')
-      link.href = window.URL.createObjectURL(blob)
-      link.setAttribute('download', 'modelo.csv')
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    },
     abrirEnvioArquivo (event) {
       this.isImportCSV = true
       this.$refs.PickerFileMessage.pickFiles(event)

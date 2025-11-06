@@ -1,5 +1,5 @@
 <template>
-  <div v-if="userProfile === 'admin'">
+  <div>
     <q-table
       flat
       bordered
@@ -77,7 +77,6 @@ export default {
   },
   data () {
     return {
-      userProfile: 'user',
       etiquetaEdicao: {},
       modalEtiqueta: false,
       etiquetas: [],
@@ -159,7 +158,6 @@ export default {
 
   },
   mounted () {
-    this.userProfile = localStorage.getItem('profile')
     this.listarEtiquetas()
   }
 }

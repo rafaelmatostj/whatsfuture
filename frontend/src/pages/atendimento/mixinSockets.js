@@ -117,10 +117,6 @@ export default {
             this.$store.commit('UPDATE_MESSAGE_STATUS', data.payload)
           }
 
-          if (data.type === 'chat:update') {
-            this.$store.commit('UPDATE_MESSAGE', data.payload)
-          }
-
           if (data.type === 'ticket:update') {
             this.$store.commit('UPDATE_TICKET', data.payload)
           }

@@ -15,20 +15,20 @@ const DeleteChatFlowService = async ({
   id,
   tenantId
 }: Request): Promise<void> => {
-  const chatFlow = await ChatFlow.findOne({
+  const cahtFlow = await ChatFlow.findOne({
     where: { id, tenantId }
   });
 
-  if (!chatFlow) {
+  if (!cahtFlow) {
     throw new AppError("ERR_NO_CHAT_FLOW_FOUND", 404);
   }
 
-  await chatFlow.update({
+  await cahtFlow.update({
     isActive: false,
     isDeleted: true
   });
 
-  await chatFlow.reload({
+  await cahtFlow.reload({
     attributes: ["isActive", "isDeleted"]
   });
 };

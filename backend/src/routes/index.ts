@@ -21,9 +21,7 @@ import chatFlowRoutes from "./chatFlowRoutes";
 import tenantRoutes from "./tenantRoutes";
 import WebHooksRoutes from "./WebHooksRoutes";
 import adminRoutes from "./adminRoutes";
-import hubChannelRoutes from "./hubChannelRoutes";
-import hubMessageRoutes from "./hubMessageRoutes";
-import hubWebhookRoutes from "./hubWebhookRoutes";
+import facebookRoutes from "./facebookRoutes";
 
 const routes = Router();
 
@@ -49,8 +47,6 @@ routes.use(chatFlowRoutes);
 routes.use(tenantRoutes);
 routes.use(WebHooksRoutes);
 routes.use(adminRoutes);
-routes.use(hubChannelRoutes);
-routes.use(hubMessageRoutes);
-routes.use(hubWebhookRoutes);
+routes.use(facebookRoutes);
 
 export default routes;

@@ -46,7 +46,8 @@ module.exports = function (ctx) {
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
       env: {
-        VUE_URL_API: process.env.VUE_URL_API
+        VUE_URL_API: process.env.VUE_URL_API,
+        VUE_FACEBOOK_APP_ID: process.env.VUE_FACEBOOK_APP_ID
       },
       vueRouterMode: 'hash', // available values: 'hash', 'history'
 
@@ -125,7 +126,7 @@ module.exports = function (ctx) {
     // https://quasar.dev/quasar-cli/developing-pwa/configuring-pwa
     pwa: {
       workboxPluginMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
-      workboxOptions: { maximumFileSizeToCacheInBytes: 5000000 }, // only for GenerateSW
+      workboxOptions: {}, // only for GenerateSW
       manifest: {
         name: 'IZING',
         short_name: 'IZING',

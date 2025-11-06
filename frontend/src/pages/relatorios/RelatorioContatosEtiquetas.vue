@@ -1,5 +1,5 @@
 <template>
-  <div v-if="userProfile === 'admin'">
+  <div>
     <q-card bordered>
       <q-card-section>
         <div class="text-h6 q-px-sm"> Relatório de Contatos por Etiquetas </div>
@@ -197,7 +197,6 @@ export default {
   },
   data () {
     return {
-      userProfile: 'user',
       data: null,
       bl_sintetico: false,
       contatos: [],
@@ -280,7 +279,6 @@ export default {
     }
   },
   beforeMount () {
-    this.userProfile = localStorage.getItem('profile')
     this.listarEtiquetas()
   },
   async mounted () {

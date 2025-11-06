@@ -1,5 +1,5 @@
 <template>
-  <div v-if="userProfile === 'admin'">
+  <div>
     <q-table
       flat
       square
@@ -130,7 +130,6 @@ export default {
   },
   data () {
     return {
-      userProfile: 'user',
       campanhaEdicao: {},
       modalCampanha: false,
       campanhas: [],
@@ -278,7 +277,6 @@ export default {
     }
   },
   mounted () {
-    this.userProfile = localStorage.getItem('profile')
     this.listarCampanhas()
   }
 }

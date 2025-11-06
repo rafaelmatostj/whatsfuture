@@ -12,25 +12,6 @@ adminRoutes.put(
 );
 
 adminRoutes.get("/admin/tenants", isAuthAdmin, AdminController.indexTenants);
-adminRoutes.put(
-  "/admin/tenantsUpdate/:tenantId",
-  isAuthAdmin,
-  AdminController.updateTenant
-);
-
-adminRoutes.post(
-  "/admin/tenants",
-  isAuthAdmin,
-  AdminController.createTenant
-);
-
-adminRoutes.delete(
-  "/admin/tenants/:tenantId",
-  isAuthAdmin,
-  AdminController.deleteTenant
-);
-
-
 adminRoutes.get(
   "/admin/chatflow/:tenantId",
   isAuthAdmin,
@@ -44,7 +25,5 @@ adminRoutes.put(
 
 adminRoutes.get("/admin/channels", isAuthAdmin, AdminController.indexChannels);
 adminRoutes.post("/admin/channels", isAuthAdmin, AdminController.storeChannel);
-
-adminRoutes.post("/admin/userTenants", isAuthAdmin, AdminController.storeUser);
 
 export default adminRoutes;

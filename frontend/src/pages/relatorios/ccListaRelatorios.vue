@@ -1,6 +1,5 @@
 <template>
   <q-card
-    v-if="userProfile === 'admin'"
     class="q-ma-sm q-pa-sm q-card q-ma-md"
     square
     style="height: calc(100vh - 130px)"
@@ -39,14 +38,6 @@ export default {
     cRelatorios () {
       return relatorios
     }
-  },
-  data () {
-    return {
-      userProfile: 'user'
-    }
-  },
-  mounted () {
-    this.userProfile = localStorage.getItem('profile')
   }
 }
 </script>

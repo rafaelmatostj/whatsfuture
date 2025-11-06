@@ -1,5 +1,5 @@
 <template>
-  <div v-if="userProfile === 'admin'">
+  <div>
     <div class="row col q-pa-md justify-between items-center">
       <h1> Painel Atendimentos </h1>
       <q-btn color="primary"
@@ -160,7 +160,6 @@ export default {
   components: { ItemTicket },
   data () {
     return {
-      userProfile: 'user',
       profile,
       visualizarFiltros: false,
       slide: 0,
@@ -357,7 +356,6 @@ export default {
   },
 
   async mounted () {
-    this.userProfile = localStorage.getItem('profile')
     await ListarFilas().then(res => {
       this.filas = res.data
     })

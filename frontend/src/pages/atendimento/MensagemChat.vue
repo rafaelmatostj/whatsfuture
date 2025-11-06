@@ -93,32 +93,28 @@
                 </div>
               </q-tooltip>
             </q-icon>
-            <div v-if="mensagem.edited" class="text-italic">
-              Editada: {{ mensagem.edited }}
-            </div>
-            <div v-if="mensagem.edited" class="text-italic">
-              Mensagem anterior:<br>
-            </div>
             <div
               v-if="mensagem.isDeleted"
               class="text-italic"
             >
               Mensagem apagada em {{ formatarData(mensagem.updatedAt, 'dd/MM/yyyy') }}.
             </div>
-            <div v-if="isGroupLabel(mensagem) && !mensagem.fromMe"
-                 class="q-mb-sm"
-                 style="display: flex; align-items: center; color: rgb(59 23 251); fontWeight: 500;">
-              <q-avatar v-if="mensagem.contact && mensagem.contact.profilePicUrl"
-                        size="40px"
-                        class="q-mr-sm">
-                <img :src="mensagem.contact.profilePicUrl" alt="Profile Picture">
-              </q-avatar>
+            <div
+              v-if="isGroupLabel(mensagem)"
+              class="q-mb-sm"
+              style="display: flex; color: rgb(59 23 251); fontWeight: 500;"
+            >
               {{ isGroupLabel(mensagem) }}
             </div>
-            <div v-if="mensagem.quotedMsg" :class="{ textContentItem: !mensagem.isDeleted, textContentItemDeleted: mensagem.isDeleted }" @click="focarMensagem(mensagem.quotedMsg)">
+            <div
+              v-if="mensagem.quotedMsg"
+              :class="{ 'textContentItem': !mensagem.isDeleted, 'textContentItemDeleted': mensagem.isDeleted }"
+            >
               <MensagemRespondida
                 style="max-width: 240px; max-height: 150px"
                 class="row justify-center"
+                @mensagem-respondida:focar-mensagem="f
+                                                                                                                carMensagem"
                 :mensagem="mensagem.quotedMsg"
               />
             </div>
@@ -160,33 +156,6 @@
                   >
                     <q-item-section>Marcar (encaminhar várias)</q-item-section>
                   </q-item>
-
-                  <q-item
-                    clickable
-                    @click="
-                          mensagemReacao = mensagem
-                          modalEmojiOpen = true
-                        "
-                    v-if="
-                          ticketFocado.channel &&
-                          ['whatsapp'].includes(
-                            ticketFocado.channel
-                          )
-                        "
-                  >
-                    <q-item-section>Reagir</q-item-section>
-                  </q-item>
-
-                  <q-item
-                    @click=" AbrirmodaleditarMensagem(mensagem) "
-                    clickable
-                    v-if=" mensagem.fromMe  && mensagem.mediaType === 'chat'"
-                    :disable="ticketFocado.channel === 'messenger'"
-                  >
-                    <q-item-section>
-                      <q-item-label>Editar Mensagem</q-item-label>
-                    </q-item-section>
-                  </q-item>
                   <q-separator />
                   <q-item
                     @click=" deletarMensagem(mensagem) "
@@ -196,51 +165,53 @@
                   >
                     <q-item-section>
                       <q-item-label>Deletar</q-item-label>
+                      <!-- <q-item-label caption>
+                        Apagará mensagem: {{ isDesactivatDelete(mensagem) ? 'PARA TODOS' : 'PARAM MIN' }}
+                      </q-item-label> -->
+                      <!-- <q-tooltip :delay="500"
+                        content-class="text-black bg-red-3 text-body1">
+                        * Após 5 min do envio, não será possível apagar a mensagem. <br>
+                        ** Não está disponível para Messenger.
+                      </q-tooltip> -->
                     </q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
             </q-btn>
             <q-icon
-              v-if="mensagem.fromMe && mensagem.mediaType !== 'reaction'"
+              v-if=" mensagem.fromMe "
               class="absolute-bottom-right q-pr-xs q-pb-xs"
               :name=" ackIcons[mensagem.ack] "
               size="1.2em"
               :color=" mensagem.ack >= 3 ? 'blue-12' : '' "
             />
-            <template v-if="mensagem.mediaType === 'audio'">
-              <AudioVisualizer
-                :url="mensagem.mediaUrl"
-                :contact="mensagem.contact"
-                :fromMe="mensagem.fromMe"
-                :avatar-src="mensagem.fromMe ? $store.state.usuario?.profileImage : mensagem.contact?.profilePicUrl"
-              />
-            </template>
-            <template v-if=" mensagem.mediaType === 'vcard' ">
-              <div style="min-width: 250px;">
-                <ContatoCard
-                  :mensagem="mensagem"
-                  @openContactModal="openContactModal"
-                />
-                <ContatoModal
-                  :value="modalContato"
-                  :contact="currentContact"
-                  @close="closeModal"
-                  @saveContact="saveContact"
-                />
+            <template v-if=" mensagem.mediaType === 'audio' ">
+              <div style="width: 330px; heigth: 300px">
+                <audio
+                  class="q-mt-md full-width"
+                  controls
+                  ref="audioMessage"
+                  controlsList="nodownload noplaybackrate volume novolume"
+                >
+                  <source
+                    :src=" mensagem.mediaUrl "
+                    type="audio/ogg"
+                  />
+                </audio>
               </div>
             </template>
-            <template v-if="mensagem.mediaType === 'location'">
-              <q-img
-                @click=" urlMedia = mensagem.mediaUrl; abrirModalImagem = false "
-                src="../../assets/localizacao.png"
-                spinner-color="primary"
-                height="150px"
-                width="330px"
-                class="q-mt-md"
-                style="cursor: pointer;"
-              />
-              <VueEasyLightbox moveDisabled :visible="abrirModalImagem" :imgs="urlMedia" :index="mensagem.ticketId || 1" @hide="abrirModalImagem = false" />
+            <template v-if=" mensagem.mediaType === 'vcard' ">
+              <q-btn
+                type="a"
+                :color=" $q.dark.isActive ? '' : 'black' "
+                outline
+                dense
+                class="q-px-sm text-center btn-rounded "
+                download="vCard"
+                :href=" `data:text/x-vcard;charset=utf-8;base64,${returnCardContato(mensagem.body)}` "
+              >
+                Download Contato
+              </q-btn>
             </template>
             <template v-if=" mensagem.mediaType === 'image' ">
               <!-- @click="buscarImageCors(mensagem.mediaUrl)" -->
@@ -277,9 +248,6 @@
               >
               </video>
             </template>
-            <div v-if="mensagem.mediaType === 'reaction'" class="reaction-container q-mt-xs">
-              {{ mensagem.body }}
-            </div>
             <template v-if=" !['audio', 'vcard', 'image', 'video'].includes(mensagem.mediaType) && mensagem.mediaUrl ">
               <div class="text-center full-width hide-scrollbar no-scroll">
                 <iframe
@@ -329,10 +297,21 @@
                   </div>
                 </q-btn>
               </div>
+              <!-- <q-btn
+                type="a"
+                color="primary"
+                outline
+                dense
+                class="q-px-sm text-center"
+                target="_blank"
+                :href="`http://docs.google.com/gview?url=${mensagem.mediaUrl}&embedded=true`"
+              >
+                Visualizar
+              </q-btn> -->
             </template>
             <div
               v-linkified
-              v-if=" !['vcard', 'application', 'audio', 'reaction'].includes(mensagem.mediaType) "
+              v-if=" !['vcard', 'application', 'audio'].includes(mensagem.mediaType) "
               :class=" { 'q-mt-sm': mensagem.mediaType !== 'chat' } "
               class="q-message-container row items-end no-wrap"
             >
@@ -343,56 +322,6 @@
         </q-chat-message>
       </template>
     </transition-group>
-
-    <q-dialog v-model="modalEmojiOpen">
-      <q-card>
-        <q-card-section class="row q-gutter-sm">
-          <q-btn
-            v-for="emoji in principaisEmojis"
-            :key="emoji"
-            flat
-            @click="selectEmoji(emoji, mensagemReacao)"
-          >
-            {{ emoji }}
-          </q-btn>
-
-          <!-- Botão circular com o ícone "+" -->
-          <q-btn
-            flat
-            round
-            icon="add"
-            size="sm"
-            class="q-ml-sm"
-            @click="expandirEmojis = !expandirEmojis"
-          />
-
-          <div v-if="expandirEmojis">
-            <VEmojiPicker
-              style="width: 40vw"
-              :showSearch="true"
-              :emojisByRow="calculateEmojisByRow()"
-              lang="pt-BR"
-              @select="onInsertSelectEmoji"
-            />
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <q-dialog v-model="showModaledit">
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Editar Mensagem</div>
-        </q-card-section>
-        <q-card-section>
-          <q-input filled v-model="mensagemAtual.body" label="Mensagem" />
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn label="Cancelar" color="negative" v-close-popup />
-          <q-btn label="Salvar" color="primary" @click="salvarMensagem" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
   </div>
 </template>
 
@@ -401,10 +330,6 @@ import mixinCommon from './mixinCommon'
 import axios from 'axios'
 import VueEasyLightbox from 'vue-easy-lightbox'
 import MensagemRespondida from './MensagemRespondida'
-import ContatoCard from './ContatoCard.vue'
-import ContatoModal from './ContatoModal.vue'
-import AudioVisualizer from '../../components/AudioVisualizer.vue'
-import { VEmojiPicker } from 'v-emoji-picker'
 const downloadImageCors = axios.create({
   baseURL: process.env.VUE_URL_API,
   timeout: 20000,
@@ -412,16 +337,12 @@ const downloadImageCors = axios.create({
     responseType: 'blob'
   }
 })
-import { DeletarMensagem, EditarMensagem, ReagirMensagem } from 'src/service/tickets'
+import { DeletarMensagem } from 'src/service/tickets'
 import { Base64 } from 'js-base64'
 export default {
   name: 'MensagemChat',
   mixins: [mixinCommon],
   props: {
-    mensagem: {
-      type: Object,
-      required: true
-    },
     mensagens: {
       type: Array,
       default: () => []
@@ -453,14 +374,6 @@ export default {
   },
   data () {
     return {
-      modalContato: false,
-      modalEmojiOpen: false,
-      mensagemReacao: null,
-      expandirEmojis: false,
-      principaisEmojis: ['👍', '❤️', '😂', '😮', '😢', '👏'],
-      currentContact: {},
-      mensagemAtual: { body: '' },
-      showModaledit: false,
       abrirModalImagem: false,
       urlMedia: '',
       identificarMensagem: null,
@@ -475,86 +388,9 @@ export default {
   },
   components: {
     VueEasyLightbox,
-    MensagemRespondida,
-    ContatoCard,
-    ContatoModal,
-    AudioVisualizer,
-    VEmojiPicker
+    MensagemRespondida
   },
   methods: {
-    openContactModal (contact) {
-      this.currentContact = contact
-      this.modalContato = true
-    },
-    closeModal () {
-      this.modalContato = false
-    },
-    saveContact (contact) {
-      console.log('Contato salvo:', contact)
-      // Aqui você pode adicionar a lógica para salvar o contato
-    },
-    async salvarMensagem () {
-      try {
-        const updatedMessage = await EditarMensagem({
-          id: this.mensagemAtual.id,
-          messageId: this.mensagemAtual.messageId,
-          body: this.mensagemAtual.body
-        })
-        console.log('Mensagem editada com sucesso')
-        this.showModaledit = false
-        this.atualizarMensagem(updatedMessage)
-      } catch (error) {
-        console.error('Erro ao editar a mensagem', error.message)
-        this.$notificarErro('Não foi possível editar a mensagem')
-      }
-    },
-    atualizarMensagem (updatedMessage) {
-      const index = this.mensagens.findIndex(mensagem => mensagem.id === updatedMessage.id)
-      if (index !== -1) {
-        this.mensagens.splice(index, 1, updatedMessage)
-      }
-    },
-    AbrirmodaleditarMensagem (mensagem) {
-      this.mensagemAtual = mensagem
-      this.showModaledit = true
-    },
-    async selectEmoji (emoji, mensagem) {
-      if (mensagem) {
-        const reactionData = {
-          messageId: mensagem.messageId,
-          ticketId: mensagem.ticketId,
-          reaction: emoji
-        }
-        await ReagirMensagem(reactionData)
-        this.mensagem = null
-      } else {
-        console.error('Nenhuma mensagem foi selecionada para reação.')
-      }
-      this.modalEmojiOpen = false
-    },
-    calculateEmojisByRow () {
-      const screenWidth = window.innerWidth
-      if (screenWidth < 600) {
-        return 5
-      } else if (screenWidth >= 600 && screenWidth < 1200) {
-        return 10
-      } else {
-        return 20
-      }
-    },
-    onInsertSelectEmoji (emoji) {
-      if (this.mensagemReacao) {
-        const reactionData = {
-          messageId: this.mensagemReacao.messageId,
-          ticketId: this.mensagemReacao.ticketId,
-          reaction: emoji.data
-        }
-        this.selectEmoji(reactionData.reaction, this.mensagemReacao)
-      } else {
-        console.error('Nenhuma mensagem foi selecionada para reação.')
-      }
-      this.modalEmojiOpen = false
-    },
     verificarEncaminharMensagem (mensagem) {
       const mensagens = [...this.mensagensParaEncaminhar]
       const msgIdx = mensagens.findIndex(m => m.id === mensagem.id)
@@ -596,6 +432,9 @@ export default {
       return Base64.encode(str)
     },
     isDesactivatDelete (msg) {
+      // if (msg) {
+      //   return (differenceInMinutes(new Date(), new Date(+msg.timestamp)) > 5)
+      // }
       return false
     },
     async buscarImageCors (imageUrl) {
@@ -625,6 +464,13 @@ export default {
       if (this.isDesactivatDelete(mensagem)) {
         this.$notificarErro('Não foi possível apagar mensagem com mais de 5min do envio.')
       }
+      // const diffHoursDate = differenceInHours(
+      //   new Date(),
+      //   parseJSON(mensagem.createdAt)
+      // )
+      // if (diffHoursDate > 2) {
+      //   // throw new AppError("No delete message afeter 2h sended");
+      // }
       const data = { ...mensagem }
       this.$q.dialog({
         title: 'Atenção!! Deseja realmente deletar a mensagem? ',
@@ -643,9 +489,8 @@ export default {
       }).onOk(() => {
         this.loading = true
         DeletarMensagem(data)
-          .then((res) => {
+          .then(res => {
             this.loading = false
-            mensagem.isDeleted = true
           })
           .catch(error => {
             this.loading = false
@@ -669,6 +514,9 @@ export default {
   },
   mounted () {
     this.scrollToBottom()
+    // this.$refs.audioMessage.forEach(element => {
+    //   element.playbackRate = 2
+    // })
   },
   destroyed () {
   }
@@ -688,15 +536,5 @@ export default {
 .checkbox-encaminhar-left {
   left: -35px;
   z-index: 99999;
-}
-
-.reaction-container {
-  font-size: 0.75rem;
-  color: #606060;
-  margin-top: 8px;
-  padding: 2px 4px;
-  border-radius: 4px;
-  background-color: #f0f0f0;
-  display: inline-block;
 }
 </style>

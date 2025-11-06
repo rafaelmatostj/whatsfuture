@@ -28,8 +28,8 @@ const SyncContactsWhatsappInstanceService = async (
     // eslint-disable-next-line @typescript-eslint/ban-types
     const dataArray: object[] = [];
     await Promise.all(
-      contacts.map(async ({ name, pushname, number, isGroup, id }) => {
-        if ((name || pushname) && !isGroup && id.server !== "lid") {
+      contacts.map(async ({ name, pushname, number, isGroup }) => {
+        if ((name || pushname) && !isGroup) {
           // const profilePicUrl = await wbot.getProfilePicUrl(`${number}@c.us`);
           const contactObj = { name: name || pushname, number, tenantId };
           dataArray.push(contactObj);
@@ -41,9 +41,8 @@ const SyncContactsWhatsappInstanceService = async (
       const query = `INSERT INTO "Contacts" (number, name, "tenantId", "createdAt", "updatedAt") VALUES
         ${dataArray
           .map((e: any) => {
-		    const cleanedName = e.name.replace(/[^a-zA-Z0-9 ]+/g, '');
             return `('${e.number}',
-			'${cleanedName}',
+            '${e.name}',
             '${e.tenantId}',
             '${d}'::timestamp,
             '${d}'::timestamp)`;

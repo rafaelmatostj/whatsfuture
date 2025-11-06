@@ -24,7 +24,6 @@ import webHooks from "../config/webHooks.dev.json";
 import authConfig from "../config/auth";
 
 import Queue from "../libs/Queue";
-import QueueModel from "./Queue";
 import ApiConfig from "./ApiConfig";
 import Tenant from "./Tenant";
 import Ticket from "./Ticket";
@@ -155,18 +154,6 @@ class Whatsapp extends Model<Whatsapp> {
   @AllowNull
   @Column(DataType.TEXT)
   farewellMessage: string;
-
-  @Default(null)
-  @AllowNull
-  @Column(DataType.STRING)
-  wavoip: string;
-
-  @ForeignKey(() => QueueModel)
-  @Column
-  queueId: number;
-
-  @BelongsTo(() => QueueModel)
-  queue: QueueModel;
 
   @Column(DataType.VIRTUAL)
   get UrlWabaWebHook(): string | null {

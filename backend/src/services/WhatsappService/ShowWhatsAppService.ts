@@ -31,9 +31,7 @@ const ShowWhatsAppService = async ({
     "tokenAPI",
     "fbPageId",
     "farewellMessage",
-    "chatFlowId",
-    "wavoip",
-    "queueId"
+    "chatFlowId"
   ];
   if (isInternal) {
     attr.push("instagramKey");

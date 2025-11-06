@@ -14,6 +14,8 @@ import Queue from "../../libs/Queue";
 import { pupa } from "../../utils/pupa";
 import SendWhatsAppMedia from "../WbotServices/SendWhatsAppMedia";
 import SendWhatsAppMessage from "../WbotServices/SendWhatsAppMessage";
+import { getInstaBot } from "../../libs/InstaBot";
+import InstagramSendMessagesSystem from "../InstagramBotServices/InstagramSendMessagesSystem";
 import TelegramSendMessagesSystem from "../TbotServices/TelegramSendMessagesSystem";
 import { getTbot } from "../../libs/tbot";
 import SendMessageSystemProxy from "../../helpers/SendMessageSystemProxy";
@@ -202,7 +204,6 @@ const CreateMessageSystemService = async ({
           const msgCreated = await Message.create({
             ...messageData,
             ...message,
-            id: messageData.id,
             userId,
             messageId: message.id?.id || message.messageId || null,
             body: media.originalname,

@@ -3,16 +3,20 @@
 import { Request, Response } from "express";
 import AppError from "../errors/AppError";
 import DeleteMessageSystem from "../helpers/DeleteMessageSystem";
+// import GetTicketWbot from "../helpers/GetTicketWbot";
 
 import SetTicketMessagesAsRead from "../helpers/SetTicketMessagesAsRead";
 import Message from "../models/Message";
 import CreateForwardMessageService from "../services/MessageServices/CreateForwardMessageService";
+// import CreateMessageOffilineService from "../services/MessageServices/CreateMessageOfflineService";
 import CreateMessageSystemService from "../services/MessageServices/CreateMessageSystemService";
 
 import ListMessagesService from "../services/MessageServices/ListMessagesService";
 import ShowTicketService from "../services/TicketServices/ShowTicketService";
-import EditWhatsAppMessage from "../services/WbotServices/EditWhatsAppMessage";
-import SendWhatsAppReaction from "../services/WbotServices/SendWhatsAppReaction";
+import DeleteWhatsAppMessage from "../services/WbotServices/DeleteWhatsAppMessage";
+import { logger } from "../utils/logger";
+// import SendWhatsAppMedia from "../services/WbotServices/SendWhatsAppMedia";
+// import SendWhatsAppMessage from "../services/WbotServices/SendWhatsAppMessage";
 
 type IndexQuery = {
   pageNumber: string;
@@ -86,7 +90,7 @@ export const remove = async (
   try {
     await DeleteMessageSystem(req.body.id, messageId, tenantId);
   } catch (error) {
-    console.error("ERR_DELETE_SYSTEM_MSG", error.message);
+    logger.error(`ERR_DELETE_SYSTEM_MSG: ${error}`);
     throw new AppError("ERR_DELETE_SYSTEM_MSG");
   }
 
@@ -111,47 +115,4 @@ export const forward = async (
   }
 
   return res.send();
-};
-
-export const edit = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  const { messageId } = req.params;
-  const { tenantId } = req.user;
-  const { body }: MessageData = req.body;
-  try {
-    await EditWhatsAppMessage(req.body.id, messageId, tenantId, body);
-  } catch (error) {
-    if (error instanceof AppError && error.message === "ERR_EDITING_WAPP_MSG") {
-      return res.status(400).json({ error: error.message });
-    }
-    throw error;
-  }
-
-  return res.send();
-};
-
-export const addReaction = async (req: Request, res: Response): Promise<Response> => {
-  try {
-
-    const { messageId, ticketId, reaction } = req.body;
-
-    await SendWhatsAppReaction({
-      messageId,
-      ticketId,
-      reactionType: reaction
-    });
-
-    return res.status(200).send({
-      message: "Reação adicionada com sucesso!",
-      reactions: reaction
-    });
-  } catch (error) {
-    console.error("Erro ao adicionar reação:", error);
-    if (error instanceof AppError) {
-      return res.status(400).send({ message: error.message });
-    }
-    return res.status(500).send({ message: "Erro ao adicionar reação", error: error.message });
-  }
 };

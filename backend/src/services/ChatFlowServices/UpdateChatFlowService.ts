@@ -28,12 +28,12 @@ const UpdateChatFlowService = async ({
 }: Request): Promise<ChatFlow> => {
   const { name, flow, userId, isActive, celularTeste } = chatFlowData;
 
-  const chatFlow = await ChatFlow.findOne({
+  const cahtFlow = await ChatFlow.findOne({
     where: { id: chatFlowId, tenantId },
     attributes: ["id", "name", "flow", "userId", "isActive", "celularTeste"]
   });
 
-  if (!chatFlow) {
+  if (!cahtFlow) {
     throw new AppError("ERR_NO_CHAT_FLOW_FOUND", 404);
   }
 
@@ -60,7 +60,7 @@ const UpdateChatFlowService = async ({
     }
   }
 
-  await chatFlow.update({
+  await cahtFlow.update({
     name,
     flow: flow.flow,
     userId,
@@ -68,11 +68,11 @@ const UpdateChatFlowService = async ({
     celularTeste: flow.celularTeste
   });
 
-  await chatFlow.reload({
+  await cahtFlow.reload({
     attributes: ["id", "name", "flow", "userId", "isActive", "celularTeste"]
   });
 
-  return chatFlow;
+  return cahtFlow;
 };
 
 export default UpdateChatFlowService;

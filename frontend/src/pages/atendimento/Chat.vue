@@ -342,8 +342,6 @@ import mixinSockets from './mixinSockets'
 import InfiniteLoading from 'vue-infinite-loading'
 import { ListarContatos } from 'src/service/contatos'
 import { EncaminharMensagem } from 'src/service/tickets'
-import whatsBackground from 'src/assets/wa-background.png'
-import whatsBackgroundDark from 'src/assets/wa-background-dark.jpg'
 
 export default {
   name: 'Chat',
@@ -391,10 +389,6 @@ export default {
     },
     style () {
       return {
-        backgroundImage: this.$q.dark.isActive ? `url(${whatsBackgroundDark}) !important` : `url(${whatsBackground}) !important`,
-        // backgroundRepeat: 'no-repeat !important',
-        backgroundPosition: 'center !important'
-        // backgroundSize: '50% !important',
       }
     },
     cStyleScroll () {

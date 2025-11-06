@@ -11,7 +11,6 @@ import socketEmit from "../../helpers/socketEmit";
 import CheckChatBotFlowWelcome from "../../helpers/CheckChatBotFlowWelcome";
 import CreateLogTicketService from "./CreateLogTicketService";
 import MessageModel from "../../models/Message";
-import Whatsapp from "../../models/Whatsapp";
 import ListSettingsService from "../SettingServices/ListSettingsService";
 
 interface Data {
@@ -26,15 +25,15 @@ interface Data {
 }
 
 const FindOrCreateTicketService = async ({
-                                           contact,
-                                           whatsappId,
-                                           unreadMessages,
-                                           tenantId,
-                                           groupContact,
-                                           msg,
-                                           isSync,
-                                           channel
-                                         }: Data): Promise<Ticket | any> => {
+  contact,
+  whatsappId,
+  unreadMessages,
+  tenantId,
+  groupContact,
+  msg,
+  isSync,
+  channel
+}: Data): Promise<Ticket | any> => {
   // se for uma mensagem de campanha, não abrir tícket
   if (msg && msg.fromMe) {
     const msgCampaign = await CampaignContacts.findOne({
@@ -93,7 +92,7 @@ const FindOrCreateTicketService = async ({
       },
       {
         association: "whatsapp",
-        attributes: ["id", "name", "wavoip"]
+        attributes: ["id", "name"]
       }
     ]
   });
@@ -195,7 +194,7 @@ const FindOrCreateTicketService = async ({
         },
         {
           association: "whatsapp",
-          attributes: ["id", "name", "wavoip"]
+          attributes: ["id", "name"]
         }
       ]
     });
@@ -231,17 +230,6 @@ const FindOrCreateTicketService = async ({
     tenantId,
     channel
   };
-
-  const whatsapp = await Whatsapp.findOne({
-    where: { id: whatsappId },
-    attributes: ['queueId']
-  });
-
-  if (whatsapp) {
-    if (whatsapp.queueId) {
-      ticketObj.queueId = whatsapp.queueId;
-    }
-  }
 
   if (DirectTicketsToWallets && contact.id) {
     const wallet: any = contact;
