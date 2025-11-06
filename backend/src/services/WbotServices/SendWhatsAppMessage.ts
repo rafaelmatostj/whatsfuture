@@ -1,64 +1,91 @@
-import { Message as WbotMessage } from "whatsapp-web.js";
+import * as Sentry from "@sentry/node";
+import { WAMessage } from "@whiskeysockets/baileys";
 import AppError from "../../errors/AppError";
 import GetTicketWbot from "../../helpers/GetTicketWbot";
-import GetWbotMessage from "../../helpers/GetWbotMessage";
-import SerializeWbotMsgId from "../../helpers/SerializeWbotMsgId";
 import Message from "../../models/Message";
 import Ticket from "../../models/Ticket";
-import UserMessagesLog from "../../models/UserMessagesLog";
 import { logger } from "../../utils/logger";
-// import { StartWhatsAppSessionVerify } from "./StartWhatsAppSessionVerify";
+import formatBody from "../../helpers/Mustache";
+
+import Queue from "bull";
+import { map_msg } from "../../utils/global";
 
 interface Request {
   body: string;
   ticket: Ticket;
   quotedMsg?: Message;
-  userId?: number | string | undefined;
+  isForwarded?: boolean;  
 }
 
 const SendWhatsAppMessage = async ({
   body,
   ticket,
   quotedMsg,
-  userId
-}: Request): Promise<WbotMessage> => {
-  let quotedMsgSerializedId: string | undefined;
+  isForwarded = false
+}: Request): Promise<WAMessage> => {
+  let options = {};
+  const wbot = await GetTicketWbot(ticket);
+  const number = `${ticket.contact.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"
+    }`;
+  console.log("number", number);
   if (quotedMsg) {
-    await GetWbotMessage(ticket, quotedMsg.id);
-    quotedMsgSerializedId = SerializeWbotMsgId(ticket, quotedMsg);
+    const chatMessages = await Message.findOne({
+      where: {
+        id: quotedMsg.id
+      }
+    });
+
+    if (chatMessages) {
+      const msgFound = JSON.parse(chatMessages.dataJson);
+
+      options = {
+        quoted: {
+          key: msgFound.key,
+          message: {
+            extendedTextMessage: msgFound.message.extendedTextMessage
+          }
+        }
+      };
+    }
+
   }
 
-  const wbot = await GetTicketWbot(ticket);
+  const connection = process.env.REDIS_URI || "";
+
+  const sendScheduledMessagesWbot = new Queue(
+    "SendWbotMessages",
+    connection
+  );
+
+  const messageData = {
+    wbotId: wbot.id,
+  number: number,
+  text: formatBody(body, ticket.contact),
+  options: { ...options }
+};
+
+
+  const sentMessage = sendScheduledMessagesWbot.add("SendMessageWbot", { messageData }, { delay: 500 });
+  logger.info("Mensagem enviada via REDIS...");
 
   try {
-    const sendMessage = await wbot.sendMessage(
-      `${ticket.contact.number}@${ticket.isGroup ? "g" : "c"}.us`,
-      body,
+    console.log('body:::::::::::::::::::::::::::', body)
+    map_msg.set(ticket.contact.number, { lastSystemMsg: body })
+    console.log('lastSystemMsg:::::::::::::::::::::::::::', ticket.contact.number)
+    const sentMessage = await wbot.sendMessage(number, {
+      text: formatBody(body, ticket.contact),
+	  contextInfo: { forwardingScore: isForwarded ? 2 : 0, isForwarded: isForwarded ? true : false }
+    },
       {
-        quotedMessageId: quotedMsgSerializedId,
-        linkPreview: false // fix: send a message takes 2 seconds when there's a link on message body
+        ...options
       }
     );
-
-    await ticket.update({
-      lastMessage: body,
-      lastMessageAt: new Date().getTime()
-    });
-    try {
-      if (userId) {
-        await UserMessagesLog.create({
-          messageId: sendMessage.id.id,
-          userId,
-          ticketId: ticket.id
-        });
-      }
-    } catch (error) {
-      logger.error(`Error criar log mensagem ${error}`);
-    }
-    return sendMessage;
+    await ticket.update({ lastMessage: formatBody(body, ticket.contact) });
+    console.log("Message sent", sentMessage);
+    return sentMessage;
   } catch (err) {
-    logger.error(`SendWhatsAppMessage | Error: ${err}`);
-    // await StartWhatsAppSessionVerify(ticket.whatsappId, err);
+    Sentry.captureException(err);
+    console.log(err);
     throw new AppError("ERR_SENDING_WAPP_MSG");
   }
 };

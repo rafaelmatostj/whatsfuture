@@ -1,7 +1,8 @@
-import socketEmit from "../../helpers/socketEmit";
+import { getIO } from "../../libs/socket";
 import Contact from "../../models/Contact";
-
-interface ExtraInfo {
+import ContactCustomField from "../../models/ContactCustomField";
+import { isNil } from "lodash";
+interface ExtraInfo extends ContactCustomField {
   name: string;
   value: string;
 }
@@ -12,15 +13,10 @@ interface Request {
   isGroup: boolean;
   email?: string;
   profilePicUrl?: string;
+  companyId: number;
   extraInfo?: ExtraInfo[];
-  tenantId: string | number;
-  pushname: string;
-  isUser: boolean;
-  isWAContact: boolean;
-  telegramId?: string | number;
-  instagramPK?: string | number;
-  messengerId?: string | number;
-  origem?: string;
+  whatsappId?: number;
+  disableBot?: boolean;
 }
 
 const CreateOrUpdateContactService = async ({
@@ -28,48 +24,35 @@ const CreateOrUpdateContactService = async ({
   number: rawNumber,
   profilePicUrl,
   isGroup,
-  tenantId,
-  pushname,
-  isUser,
-  isWAContact,
   email = "",
-  telegramId,
-  instagramPK,
-  messengerId,
+  companyId,
   extraInfo = [],
-  origem = "whatsapp"
+  whatsappId,
+  disableBot = false
 }: Request): Promise<Contact> => {
-  const number = isGroup
-    ? String(rawNumber)
-    : String(rawNumber).replace(/[^0-9]/g, "");
+  const number = isGroup ? rawNumber : rawNumber.replace(/[^0-9]/g, "");
 
-  let contact: Contact | null = null;
+  const io = getIO();
+  let contact: Contact | null;
 
-  if (origem === "whatsapp") {
-    contact = await Contact.findOne({ where: { number, tenantId } });
-  }
-
-  if (origem === "telegram" && telegramId) {
-    contact = await Contact.findOne({ where: { telegramId, tenantId } });
-  }
-
-  if (origem === "instagram" && instagramPK) {
-    contact = await Contact.findOne({ where: { instagramPK, tenantId } });
-  }
-
-  if (origem === "messenger" && messengerId) {
-    contact = await Contact.findOne({ where: { messengerId, tenantId } });
-  }
+  contact = await Contact.findOne({
+    where: {
+      number,
+      companyId
+    }
+  });
 
   if (contact) {
-    contact.update({
-      profilePicUrl,
-      pushname,
-      isUser,
-      isWAContact,
-      telegramId,
-      instagramPK,
-      messengerId
+    contact.update({ profilePicUrl });
+    console.log(contact.whatsappId)
+    if (isNil(contact.whatsappId === null)) {
+      contact.update({
+        whatsappId
+      });
+    }
+    io.to(`company-${companyId}-mainchannel`).emit(`company-${companyId}-contact`, {
+      action: "update",
+      contact
     });
   } else {
     contact = await Contact.create({
@@ -78,22 +61,17 @@ const CreateOrUpdateContactService = async ({
       profilePicUrl,
       email,
       isGroup,
-      pushname,
-      isUser,
-      isWAContact,
-      tenantId,
       extraInfo,
-      telegramId,
-      instagramPK,
-      messengerId
+      companyId,
+      whatsappId,
+      disableBot
+    });
+
+    io.to(`company-${companyId}-mainchannel`).emit(`company-${companyId}-contact`, {
+      action: "create",
+      contact
     });
   }
-
-  socketEmit({
-    tenantId,
-    type: "contact:update",
-    payload: contact
-  });
 
   return contact;
 };

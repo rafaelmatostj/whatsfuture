@@ -1,79 +1,138 @@
-[![Grupo do WhatsApp](https://img.shields.io/badge/WhatsApp-Grupo%20IZING-brightgreen.svg)](https://chat.whatsapp.com/IIReEheixAx27ZbneHpskP)
+# WhaTicket Versão Saas com Módulo Kanban, Modo Noturno e as seguintes integrações:</br>
 
-# Izing
+Baseado no Whaticket Gold da PLW Designer
 
-Um sistema para gestão de atendimento multicanais centralizado.
+Distribuido por Launcher & Co.
 
+🗣️ DialogFlow</br>
+🔄 N8N</br>
+🌐 WebHooks</br>
+🤖 TypeBot</br>
+💬 ChatGPT</br>
 
-**IMPORTANTE**: não garantimos que a utilização desta ferramenta não irá gerar bloqueio nas contas utilizadas. São bots que em sua maioria utilizam APIs secundarias para comunicação com os fornecedores dos serviços. Use com responsabilidade!
+Sugestão de VPS:
 
-<br/>
+BASIC: 4 vCores, 6 GB de RAM e 100 GB de SSD NVMe $4.99 USD Mensal com taxa de setup de $4.99.
 
-## Screenshots
+STANDARD: 6 vCores, 12 GB de RAM e 200 GB de SSD NVMe $9.99 USD Mensal com taxa de setup de $5.99.
 
-![Doação](screenshots/Bot.gif)
-<br/>
+Utilize o cupom WHATICKET e obtenha 25% de desconto no primeiro pagamento.
 
-![Doação](screenshots/dashboard.gif)
-<br/>
+```
+https://control.peramix.com/?affid=14
+```
 
-![Doação](screenshots/izing.gif)
-___
+VPS 1000 G11: 4 vCores, 8 GB de RAM e 256 GB de SSD NVMe €5.75 Mensal.
 
-<br/>
+VPS 2000 G11: 8 vCores, 16 GB de RAM e 512 GB de SSD NVMe €12.60 USD Mensal.
 
-## Principais funcionalidades
+```
+https://www.netcup.com/en/?ref=257888
+```
+Voucher de 5 euros:
 
-- Multíplos canais de atendimento ✅
-- Multíplos usuários simultâneos por canais de atendimento ✅
-- Iniciar conversa com contatos existentes (whatsapp) ✅
-- Construção de Chatbot interativo ✅
-- Enviar e receber mensagens ✅
-- Enviar e receber mídias diversas (imagens/áudio/documentos) ✅
-- Multiempresas (abordagem de base compartilhada)
+```
+36nc17424834870
+```
+```
+36nc17415489990
+```
+```
+36nc17424834870
+```
+```
+36nc17415489990
+```
+Informações Importantes:
+Apenas Suporte Básico
 
-<br/>
+Notas Internas:</br>
+Nova Atualização de Maio de 2025</br>
+Mantido Versão 6.0.0</br>
+Avaliaremos se os seguintes bugs das versão beta e a de abril foram corrigidos pelo próprio desenvolvedor: 
+Erro de Conexão, Erro Mensagem Fora do Expediente, Nome dos dias no modal de filas (ok), não criar faturas (ok), não editar empresas (ok), importar contatos do telefone (nok), não enviar e-mail de recuperação de senha (não testado).
 
-## Instalando
-Seguem links sugerimos:
--  [Como Instalar o IZING - Método 2023](https://www.youtube.com/watch?v=0j1v6m4Nk74&t=379s)
+📅 16/04/2025 – Versão 6.0.0
 
-<br/>
+🌑 Correções no Darkmode (dentro das mensagens)</br>
+🔄 Botão Light/Dark movido (está no perfil)</br>
+📊 Estilos dos cards da Dashboard alterados (removido botão de impressão)</br>
+🎟️ Estilo de ticket alterado</br>
+⚡ Respostas rápidas (layout novo)</br>
+📂 Correção no envio de menu (filas) – na 3ª tentativa é enviado automaticamente para a 1ª fila</br>
+🌍 Botão de tradução</br>
+⚠️ Aviso de contato (caso o ticket esteja aberto, é emitido um aviso)</br>
+🔧 Página de conexão reformulada</br>
+👑 Adicionada opção de SuperAdmin (dentro do popup do usuário)</br>
+📆 Correção no agendamento (agora envia imagem com texto)</br>
+♻️ Agendamento reformulado (com suporte a ciclos)</br> 
+🔐 Novo layout da tela de login</br>
+📝 Novo layout da tela de signup</br>
+🛠️ Correção de vazamento no WebSocket</br>
 
-## Atualizando
+📅 13/12/2024 – Versão 5.5.0
 
-Izing é um trabalho em progresso e estamos frequentemente adicionando novas funcionalidades e correções de bugs.
+🛠️ Correção ao redimensionar área de ticket</br>
+✅ Validação de número no ContactModal</br>
+🔄 Regressão OpenAI para versão 3.3.0 e wbotMessageListener.ts</br>
+🎧 Áudio no iPhone</br>
+📵 Recusando chamadas automaticamente</br>
+📲 Filas da conexão ao requisitar novo QR Code</br>
+📊 Dashboard reformulado</br>
+📈 Página de relatórios</br>
+🗂️ Kanban reformulado</br>
 
-<br/>
+📅 07/11/2024 – Versão 5.3.5
 
-**IMPORTANTE**: verifique sempre o .env.example e ajuste o seu .env antes de atualizar, uma vez que algumas novas variáveis podem ser adicionadas.
+📅 Correção da Data de Vencimento no Topo: Data agora permanece fixa. </br>
+🔄 Automação em Grupos: Não envia automações para grupos. </br>
+🚫 Botão disableBot: Desabilita bots ou automações. </br>
+✉️ Correção de Mensagem Citada. </br>
+🔗 Permissão para Conexões com Mesmo Nome. </br>
+⏳ Expiração de Conexões: Desconexão automática após vencimento da empresa. </br>
+🗑️ Seleção para Deletar Contatos: Opção de seleção para exclusão na página “Contatos”. </br>
+🎵 Correção no Envio de Áudio OGG em respostas rápidas. </br>
+📂 Visualização de Tickets Fechados por Operador: Aba removida do painel de usuários. </br>
+📜 Visualização de Grupos por Operador: Aba removida do painel de usuários. </br>
+💸 Atualização Financeira após Alteração de Plano: Valor ajustado automaticamente na lista do Financeiro. </br>
 
+24/07/2024 – Versão 5.2.6
 
-<br/>
+✅ Fechar todos os tickets abertos ou em espera. </br>
+👍 Reagir a uma mensagem. </br>
+🔄 Encaminhar mensagens para outro ticket. </br>
+🎨 Aparência do menu aprimorada. </br>
+🚪 Botão “Sair” adicionado ao menu. </br>
+🗑️ Notificação quando uma mensagem é apagada no WhatsApp, informando no chat. </br>
+🔄 API atualizada. </br>
+🆕 Novo layout da página de login. </br>
+💬 Indicação “Digitando” ou “Gravando” aparece no ticket, no canto inferior direito, ao lado do nome. </br>
 
-## FIQUE ATENTO
+Biblioteca Baileys Atualizada:</br>
 
-A utilização desta ferramenta é feita por sua conta e risco. O código é aberto e todos podem contribuir.
+V 6.7.16
 
-Este projeto não é afiliado, associado, autorizado, endossado por, ou de qualquer forma oficialmente ligado à WhatsApp, ou a qualquer uma das suas filiais ou afiliadas. O website oficial da WhatsApp pode ser encontrado em <https://whatsapp.com>. "WhatsApp", bem como nomes, marcas, emblemas e imagens relacionadas são marcas registadas dos seus respectivos proprietários.
+Instalador atualizado, versao NodeJS 20:
 
---------------------------
-<br/>
+```
+https://github.com/launcherbr/instalador.git
+```
+Notas Rápidas: </br>
+Requer servidor Ubuntu 20.04 LTS com ao menos 4 vcore e 8gb de ram.</br>
+Recomendamos Peramix, Contabo, e Hetzner</br>
+Não recomendamos Hostinger, Hostgator e Locaweb.</br>
+Evite latencia muito baixa e muito alta (servidor local e servidores na Europa)</br>
 
+Siga os arquivos de Instruções para instalação, você precisa ter acesso liberado ao Google Drive:
 
-#### Curtiu? Apoie o projeto!! Com sua doação, será possível continuar com as atualizações. Segue QR code (PIX)  
+```
+https://drive.google.com/drive/folders/16ZT6NnzD8kNBB18EpOYBGV4epWFJWWtZ?usp=drive_link
+```
 
-[<img src="donate.jpeg" height="150" width="200"/>](donate.jpeg)
+Confira no pdf aqui como gerar um webhook de retorno automático de pagamento da Efi.
 
---------------------------
-<br/>
-
-## **Licença e seus requerimentos**
-
-Izing é open-source, licenciado com base na licença GNU Affero General Public License Version 3 [(AGPLv3)](https://www.gnu.org/licenses/agpl-3.0.pt-br.html). O objetivo da licença AGPL é maximizar a liberdade do usuário e incentivar as empresas a contribuir com o código aberto.
-
-Você pode usar o izing em sua própria estrutura, desde que não seja para fins de comercialização.
-Você pode fazer um fork do projeto para realizar suas alterações, implementar os recursos desejados, mas deverá abrir o código para a comunidade, conforme previsto pela licença. 
-
-Uma vez que você deseje utilizar o izing para fins comerciais, todas as suas alterações, seu código fonte, precisa ser aberto (open source) para acesso pela comunidade, conforme licença. Bem como, deverá de forma clara, evidenciar aos seus usuários/clientes em menção de destaque ao projeto oficial (https://izing.io). Também é requerido a menção que você fornece uma versão alterada do izing e, em algum lugar do seu site, deverá fornecer o link para o repositório do seu projeto, permitindo que todos possam verificar as mudanças realizadas.
-
+```
+https://drive.google.com/file/d/1Kjd-9NurK-7gw7_22-uIsZoB0MZ74YFp/view?usp=drivesdk
+```
+Personalizações:</br>
+As instruções para alteração de cores, logo, icones e nome da instalação estão nos arquivos de instruções.

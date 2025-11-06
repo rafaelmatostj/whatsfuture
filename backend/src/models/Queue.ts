@@ -5,13 +5,25 @@ import {
   UpdatedAt,
   Model,
   PrimaryKey,
-  ForeignKey,
-  BelongsTo,
   AutoIncrement,
+  AllowNull,
+  Unique,
+  BelongsToMany,
+  BelongsTo,
+  ForeignKey,
+  HasMany,
+  DataType,
   Default
 } from "sequelize-typescript";
-import Tenant from "./Tenant";
 import User from "./User";
+import UserQueue from "./UserQueue";
+import Company from "./Company";
+
+import Whatsapp from "./Whatsapp";
+import WhatsappQueue from "./WhatsappQueue";
+import QueueOption from "./QueueOption";
+import Prompt from "./Prompt";
+import QueueIntegrations from "./QueueIntegrations";
 
 @Table
 class Queue extends Model<Queue> {
@@ -20,12 +32,28 @@ class Queue extends Model<Queue> {
   @Column
   id: number;
 
+  @AllowNull(false)
+  @Unique
   @Column
-  queue: string;
+  name: string;
 
-  @Default(true)
+  @AllowNull(false)
+  @Unique
   @Column
-  isActive: boolean;
+  color: string;
+
+  @Default("")
+  @Column
+  greetingMessage: string;
+
+  @Default("")
+  @Column
+  outOfHoursMessage: string;
+
+  @Column({
+    type: DataType.JSONB
+  })
+  schedules: [];
 
   @CreatedAt
   createdAt: Date;
@@ -33,19 +61,49 @@ class Queue extends Model<Queue> {
   @UpdatedAt
   updatedAt: Date;
 
-  @ForeignKey(() => User)
+  @ForeignKey(() => Company)
   @Column
-  userId: number;
+  companyId: number;
 
-  @BelongsTo(() => User)
-  user: User;
+  @BelongsTo(() => Company)
+  company: Company;
 
-  @ForeignKey(() => Tenant)
+  @BelongsToMany(() => Whatsapp, () => WhatsappQueue)
+  whatsapps: Array<Whatsapp & { WhatsappQueue: WhatsappQueue }>;
+
+  @BelongsToMany(() => User, () => UserQueue)
+  users: Array<User & { UserQueue: UserQueue }>;
+
+  @HasMany(() => QueueOption, {
+    onDelete: "DELETE",
+    onUpdate: "DELETE",
+    hooks: true
+  })
+  options: QueueOption[];
+
   @Column
-  tenantId: number;
+  orderQueue: number;
 
-  @BelongsTo(() => Tenant)
-  tenant: Tenant;
+  
+  @ForeignKey(() => QueueIntegrations)
+  @Column
+  integrationId: number;
+
+  @BelongsTo(() => QueueIntegrations)
+  queueIntegrations: QueueIntegrations;
+
+  @ForeignKey(() => Prompt)
+  @Column
+  promptId: number;
+
+  @BelongsTo(() => Prompt)
+  prompt: Prompt;
+  
+  @Column
+  mediaPath: string;
+
+  @Column
+  mediaName: string;
 }
 
 export default Queue;

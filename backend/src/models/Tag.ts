@@ -5,30 +5,41 @@ import {
   UpdatedAt,
   Model,
   PrimaryKey,
+  AutoIncrement,
+  BelongsToMany,
   ForeignKey,
   BelongsTo,
-  AutoIncrement,
-  Default
+  HasMany
 } from "sequelize-typescript";
-import Tenant from "./Tenant";
-import User from "./User";
+import Company from "./Company";
+import Ticket from "./Ticket";
+import TicketTag from "./TicketTag";
 
 @Table
-class Tags extends Model<Tags> {
+class Tag extends Model<Tag> {
   @PrimaryKey
   @AutoIncrement
   @Column
   id: number;
 
   @Column
-  tag: string;
+  name: string;
 
   @Column
   color: string;
 
-  @Default(true)
+  @HasMany(() => TicketTag)
+  ticketTags: TicketTag[];
+
+  @BelongsToMany(() => Ticket, () => TicketTag)
+  tickets: Ticket[];
+
+  @ForeignKey(() => Company)
   @Column
-  isActive: boolean;
+  companyId: number;
+
+  @BelongsTo(() => Company)
+  company: Company;
 
   @CreatedAt
   createdAt: Date;
@@ -36,19 +47,8 @@ class Tags extends Model<Tags> {
   @UpdatedAt
   updatedAt: Date;
 
-  @ForeignKey(() => User)
   @Column
-  userId: number;
-
-  @BelongsTo(() => User)
-  user: User;
-
-  @ForeignKey(() => Tenant)
-  @Column
-  tenantId: number;
-
-  @BelongsTo(() => Tenant)
-  tenant: Tenant;
+  kanban: number;
 }
 
-export default Tags;
+export default Tag;

@@ -1,6 +1,6 @@
 import { verify } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-
+import { logger } from "../utils/logger";
 import AppError from "../errors/AppError";
 import authConfig from "../config/auth";
 
@@ -8,7 +8,7 @@ interface TokenPayload {
   id: string;
   username: string;
   profile: string;
-  tenantId: number;
+  companyId: number;
   iat: number;
   exp: number;
 }
@@ -17,22 +17,21 @@ const isAuth = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    throw new AppError("Token was not provided.", 403);
+    throw new AppError("ERR_SESSION_EXPIRED", 401);
   }
 
   const [, token] = authHeader.split(" ");
 
   try {
     const decoded = verify(token, authConfig.secret);
-    const { id, profile, tenantId } = decoded as TokenPayload;
-
+    const { id, profile, companyId } = decoded as TokenPayload;
     req.user = {
       id,
       profile,
-      tenantId
+      companyId
     };
   } catch (err) {
-    throw new AppError("Invalid token.", 403);
+    throw new AppError("Invalid token. We'll try to assign a new one on next request", 403 );
   }
 
   return next();

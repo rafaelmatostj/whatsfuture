@@ -1,10 +1,16 @@
 import Setting from "../../models/Setting";
 
-const ListSettingsService = async (
-  tenantId: number | string
-): Promise<Setting[] | undefined> => {
+interface Request {
+  companyId: number;
+}
+
+const ListSettingsService = async ({
+  companyId
+}: Request): Promise<Setting[] | undefined> => {
   const settings = await Setting.findAll({
-    where: { tenantId }
+    where: {
+      companyId
+    }
   });
 
   return settings;

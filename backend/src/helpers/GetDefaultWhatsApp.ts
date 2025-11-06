@@ -1,27 +1,43 @@
 import AppError from "../errors/AppError";
 import Whatsapp from "../models/Whatsapp";
+import GetDefaultWhatsAppByUser from "./GetDefaultWhatsAppByUser";
 
 const GetDefaultWhatsApp = async (
-  tenantId: string | number,
-  channelId?: number
+  companyId: number,
+  userId?: number
 ): Promise<Whatsapp> => {
-  const where: any = { tenantId, status: "CONNECTED" };
-
-  if (channelId) {
-    where.id = channelId;
-  } else {
-    where.type = "whatsapp";
-  }
+  let connection: Whatsapp;
 
   const defaultWhatsapp = await Whatsapp.findOne({
-    where
+    where: { isDefault: true, companyId }
   });
 
-  if (!defaultWhatsapp || !tenantId) {
-    throw new AppError("ERR_NO_DEF_WAPP_FOUND");
+  if (defaultWhatsapp?.status === 'CONNECTED') {
+    connection = defaultWhatsapp;
+  } else {
+    const whatsapp = await Whatsapp.findOne({
+      where: { status: "CONNECTED", companyId }
+    });
+    connection = whatsapp;
   }
 
-  return defaultWhatsapp;
+  if (userId) {
+    const whatsappByUser = await GetDefaultWhatsAppByUser(userId);
+    if (whatsappByUser?.status === 'CONNECTED') {
+      connection = whatsappByUser;
+    } else {
+      const whatsapp = await Whatsapp.findOne({
+        where: { status: "CONNECTED", companyId }
+      });
+      connection = whatsapp;
+    }
+  }
+
+  if (!connection) {
+    throw new AppError(`ERR_NO_DEF_WAPP_FOUND in COMPANY ${companyId}`);
+  }
+
+  return connection;
 };
 
 export default GetDefaultWhatsApp;

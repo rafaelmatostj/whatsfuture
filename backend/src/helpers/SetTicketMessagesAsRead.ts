@@ -1,51 +1,61 @@
-import { getMessengerBot } from "../libs/messengerBot";
+import { proto, WASocket } from "@whiskeysockets/baileys";
+// import cacheLayer from "../libs/cache";
+import { getIO } from "../libs/socket";
 import Message from "../models/Message";
 import Ticket from "../models/Ticket";
-import ShowTicketService from "../services/TicketServices/ShowTicketService";
 import { logger } from "../utils/logger";
 import GetTicketWbot from "./GetTicketWbot";
-import socketEmit from "./socketEmit";
 
 const SetTicketMessagesAsRead = async (ticket: Ticket): Promise<void> => {
-  await Message.update(
-    { read: true },
-    {
-      where: {
-        ticketId: ticket.id,
-        read: false
-      }
-    }
-  );
-
   await ticket.update({ unreadMessages: 0 });
+  // await cacheLayer.set(`contacts:${ticket.contactId}:unreads`, "0");
 
   try {
-    if (ticket.channel === "whatsapp") {
-      const wbot = await GetTicketWbot(ticket);
-      wbot
-        .sendSeen(`${ticket.contact.number}@${ticket.isGroup ? "g" : "c"}.us`)
-        .catch(e => console.error("não foi possível marcar como lifo", e));
+    const wbot = await GetTicketWbot(ticket);
+
+    const getJsonMessage = await Message.findAll({
+      where: {
+        ticketId: ticket.id,
+        fromMe: false,
+        read: false
+      },
+      order: [["createdAt", "DESC"]]
+    });
+
+    if (getJsonMessage.length > 0) {
+      const lastMessages: proto.IWebMessageInfo = JSON.parse(
+        JSON.stringify(getJsonMessage[0].dataJson)
+      );
+
+      if (lastMessages.key && lastMessages.key.fromMe === false) {
+        await (wbot as WASocket).chatModify(
+          { markRead: true, lastMessages: [lastMessages] },
+          `${ticket.contact.number}@${
+            ticket.isGroup ? "g.us" : "s.whatsapp.net"
+          }`
+        );
+      }
     }
-    if (ticket.channel === "messenger") {
-      const messengerBot = getMessengerBot(ticket.whatsappId);
-      messengerBot.markSeen(ticket.contact.messengerId);
-    }
+
+    await Message.update(
+      { read: true },
+      {
+        where: {
+          ticketId: ticket.id,
+          read: false
+        }
+      }
+    );
   } catch (err) {
     logger.warn(
       `Could not mark messages as read. Maybe whatsapp session disconnected? Err: ${err}`
     );
-    // throw new Error("ERR_WAPP_NOT_INITIALIZED");
   }
 
-  const ticketReload = await ShowTicketService({
-    id: ticket.id,
-    tenantId: ticket.tenantId
-  });
-
-  socketEmit({
-    tenantId: ticket.tenantId,
-    type: "ticket:update",
-    payload: ticketReload
+  const io = getIO();
+  io.to(`company-${ticket.companyId}-mainchannel`).emit(`company-${ticket.companyId}-ticket`, {
+    action: "updateUnread",
+    ticketId: ticket.id
   });
 };
 

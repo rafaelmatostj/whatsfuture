@@ -1,20 +1,22 @@
 import GetDefaultWhatsApp from "../../helpers/GetDefaultWhatsApp";
 import { getWbot } from "../../libs/wbot";
-import { logger } from "../../utils/logger";
 
 const GetProfilePicUrl = async (
   number: string,
-  tenantId: string | number
+  companyId: number
 ): Promise<string> => {
+  const defaultWhatsapp = await GetDefaultWhatsApp(companyId);
+
+  const wbot = getWbot(defaultWhatsapp.id);
+
+  let profilePicUrl: string;
   try {
-    const defaultWhatsapp = await GetDefaultWhatsApp(tenantId);
-    const wbot = getWbot(defaultWhatsapp.id);
-    const profilePicUrl = await wbot.getProfilePicUrl(`${number}@c.us`);
-    return profilePicUrl;
+    profilePicUrl = await wbot.profilePictureUrl(`${number}@s.whatsapp.net`);
   } catch (error) {
-    logger.error(`GetProfilePicUrl - ${error}`);
-    return "";
+    profilePicUrl = `${process.env.FRONTEND_URL}/nopicture.png`;
   }
+
+  return profilePicUrl;
 };
 
 export default GetProfilePicUrl;

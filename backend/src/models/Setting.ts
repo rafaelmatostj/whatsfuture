@@ -9,7 +9,8 @@ import {
   BelongsTo,
   AutoIncrement
 } from "sequelize-typescript";
-import Tenant from "./Tenant";
+
+import Company from "./Company";
 
 @Table
 class Setting extends Model<Setting> {
@@ -30,12 +31,12 @@ class Setting extends Model<Setting> {
   @UpdatedAt
   updatedAt: Date;
 
-  @ForeignKey(() => Tenant)
+  @ForeignKey(() => Company)
   @Column
-  tenantId: number;
+  companyId: number;
 
-  @BelongsTo(() => Tenant)
-  tenant: Tenant;
+  @BelongsTo(() => Company)
+  company: Company;
 }
 
 export default Setting;

@@ -1,4 +1,3 @@
-import { sign } from "jsonwebtoken";
 import {
   Table,
   Column,
@@ -12,26 +11,17 @@ import {
   AllowNull,
   HasMany,
   Unique,
+  BelongsToMany,
   ForeignKey,
-  BelongsTo,
-  AfterUpdate,
-  BeforeCreate,
-  BeforeUpdate
-  // DefaultScope
+  BelongsTo
 } from "sequelize-typescript";
-import webHooks from "../config/webHooks.dev.json";
-
-import authConfig from "../config/auth";
-
-import Queue from "../libs/Queue";
-import ApiConfig from "./ApiConfig";
-import Tenant from "./Tenant";
+import Queue from "./Queue";
 import Ticket from "./Ticket";
-import ChatFlow from "./ChatFlow";
+import WhatsappQueue from "./WhatsappQueue";
+import Company from "./Company";
+import Prompt from "./Prompt";
+import QueueIntegrations from "./QueueIntegrations";
 
-// @DefaultScope(() => ({
-//   where: { isDeleted: false }
-// }))
 @Table
 class Whatsapp extends Model<Whatsapp> {
   @PrimaryKey
@@ -59,51 +49,36 @@ class Whatsapp extends Model<Whatsapp> {
   @Column
   plugged: boolean;
 
-  @Default(true)
-  @Column
-  isActive: boolean;
-
-  @Default(false)
-  @Column
-  isDeleted: boolean;
-
   @Column
   retries: number;
+
+  @Default("")
+  @Column(DataType.TEXT)
+  greetingMessage: string;
+
+  @Default("")
+  @Column(DataType.TEXT)
+  farewellMessage: string;
+
+  @Default("")
+  @Column(DataType.TEXT)
+  complationMessage: string;
+
+  @Default("")
+  @Column(DataType.TEXT)
+  outOfHoursMessage: string;
+
+  @Default("")
+  @Column(DataType.TEXT)
+  ratingMessage: string;
+
+  @Column({ defaultValue: "stable" })
+  provider: string;
 
   @Default(false)
   @AllowNull
   @Column
   isDefault: boolean;
-
-  @Default(null)
-  @AllowNull
-  @Column
-  tokenTelegram: string;
-
-  @Default(null)
-  @AllowNull
-  @Column
-  instagramUser: string;
-
-  @Default(null)
-  @AllowNull
-  @Column
-  instagramKey: string;
-
-  @Default(null)
-  @AllowNull
-  @Column
-  fbPageId: string;
-
-  @Default(null)
-  @AllowNull
-  @Column(DataType.JSONB)
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  fbObject: object;
-
-  @Default("whatsapp")
-  @Column(DataType.ENUM("whatsapp", "telegram", "instagram", "messenger"))
-  type: string;
 
   @CreatedAt
   createdAt: Date;
@@ -111,132 +86,67 @@ class Whatsapp extends Model<Whatsapp> {
   @UpdatedAt
   updatedAt: Date;
 
-  @Column
-  number: string;
-
-  @Column(DataType.JSONB)
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  phone: object;
-
   @HasMany(() => Ticket)
   tickets: Ticket[];
 
-  @ForeignKey(() => Tenant)
+  @BelongsToMany(() => Queue, () => WhatsappQueue)
+  queues: Array<Queue & { WhatsappQueue: WhatsappQueue }>;
+
+  @HasMany(() => WhatsappQueue)
+  whatsappQueues: WhatsappQueue[];
+
+  @ForeignKey(() => Company)
   @Column
-  tenantId: number;
+  companyId: number;
 
-  @BelongsTo(() => Tenant)
-  tenant: Tenant;
+  @BelongsTo(() => Company)
+  company: Company;
 
-  @ForeignKey(() => ChatFlow)
   @Column
-  chatFlowId: number;
+  token: string;
 
-  @BelongsTo(() => ChatFlow)
-  chatFlow: ChatFlow;
+  //@Default(0)
+  //@Column
+  //timeSendQueue: number;
 
-  @Default(null)
-  @AllowNull
-  @Column(DataType.ENUM("360", "gupshup"))
-  wabaBSP: string;
+  //@Column
+  //sendIdQueue: number;
+  
+  @Column
+  transferQueueId: number;
 
-  @Default(null)
-  @AllowNull
-  @Column(DataType.TEXT)
-  tokenAPI: string;
+  @Column
+  timeToTransfer: number;  
 
-  @Default(null)
-  @AllowNull
-  @Column(DataType.TEXT)
-  tokenHook: string;
 
-  @Default(null)
-  @AllowNull
-  @Column(DataType.TEXT)
-  farewellMessage: string;
+  @ForeignKey(() => Prompt)
+  @Column
+  promptId: number;
 
-  @Column(DataType.VIRTUAL)
-  get UrlWabaWebHook(): string | null {
-    const key = this.getDataValue("tokenHook");
-    const wabaBSP = this.getDataValue("wabaBSP");
-    let BACKEND_URL;
-    BACKEND_URL = process.env.BACKEND_URL;
-    if (process.env.NODE_ENV === "dev") {
-      BACKEND_URL = webHooks.urlWabahooks;
-    }
-    return `${BACKEND_URL}/wabahooks/${wabaBSP}/${key}`;
-  }
+  @BelongsTo(() => Prompt)
+  prompt: Prompt;
 
-  @Column(DataType.VIRTUAL)
-  get UrlMessengerWebHook(): string | null {
-    const key = this.getDataValue("tokenHook");
-    let BACKEND_URL;
-    BACKEND_URL = process.env.BACKEND_URL;
-    if (process.env.NODE_ENV === "dev") {
-      BACKEND_URL = webHooks.urlWabahooks;
-    }
-    return `${BACKEND_URL}/fb-messenger-hooks/${key}`;
-  }
+  @ForeignKey(() => QueueIntegrations)
+  @Column
+  integrationId: number;
 
-  @AfterUpdate
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static async HookStatus(instance: Whatsapp & any): Promise<void> {
-    const { status, name, qrcode, number, tenantId, id: sessionId } = instance;
-    const payload: any = {
-      name,
-      number,
-      status,
-      qrcode,
-      timestamp: Date.now(),
-      type: "hookSessionStatus"
-    };
+  @BelongsTo(() => QueueIntegrations)
+  queueIntegrations: QueueIntegrations;
 
-    const apiConfig: any = await ApiConfig.findAll({
-      where: { tenantId, sessionId }
-    });
+  @Column
+  maxUseBotQueues: number;
 
-    if (!apiConfig) return;
+  @Column
+  timeUseBotQueues: string;
 
-    await Promise.all(
-      apiConfig.map((api: ApiConfig) => {
-        if (api.urlServiceStatus) {
-          if (api.authToken) {
-            payload.authToken = api.authToken;
-          }
-          return Queue.add("WebHooksAPI", {
-            url: api.urlServiceStatus,
-            type: payload.type,
-            payload
-          });
-        }
-      })
-    );
-  }
-
-  @BeforeUpdate
-  @BeforeCreate
-  static async CreateTokenWebHook(instance: Whatsapp): Promise<void> {
-    const { secret } = authConfig;
-
-    if (
-      !instance?.tokenHook &&
-      (instance.type === "waba" || instance.type === "messenger")
-    ) {
-      const tokenHook = sign(
-        {
-          tenantId: instance.tenantId,
-          whatsappId: instance.id
-          // wabaBSP: instance.wabaBSP
-        },
-        secret,
-        {
-          expiresIn: "10000d"
-        }
-      );
-
-      instance.tokenHook = tokenHook;
-    }
-  }
+  @Column
+  expiresTicket: number;
+  
+  @Column
+  number: string;
+  
+  @Column
+  expiresInactiveMessage: string;
 }
 
 export default Whatsapp;

@@ -9,43 +9,63 @@ import ListUsersService from "../services/UserServices/ListUsersService";
 import UpdateUserService from "../services/UserServices/UpdateUserService";
 import ShowUserService from "../services/UserServices/ShowUserService";
 import DeleteUserService from "../services/UserServices/DeleteUserService";
-import UpdateUserConfigsService from "../services/UserServices/UpdateUserConfigsService";
+import SimpleListService from "../services/UserServices/SimpleListService";
+import User from "../models/User";
 
 type IndexQuery = {
   searchParam: string;
   pageNumber: string;
 };
 
+type ListQueryParams = {
+  companyId: string;
+};
+
 export const index = async (req: Request, res: Response): Promise<Response> => {
-  const { tenantId } = req.user;
   const { searchParam, pageNumber } = req.query as IndexQuery;
+  const { companyId, profile } = req.user;
 
   const { users, count, hasMore } = await ListUsersService({
     searchParam,
     pageNumber,
-    tenantId
+    companyId,
+    profile
   });
 
   return res.json({ users, count, hasMore });
 };
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
-  const { tenantId } = req.user;
-  const { email, password, name, profile } = req.body;
-  const { users } = await ListUsersService({ tenantId });
+  const {
+    email,
+    password,
+    name,
+    profile,
+    companyId: bodyCompanyId,
+    queueIds,
+    whatsappId,
+	allTicket
+  } = req.body;
+  let userCompanyId: number | null = null;
 
-  if (users.length >= Number(process.env.USER_LIMIT)) {
-          throw new AppError("ERR_USER_LIMIT_USER_CREATION", 400);
+  let requestUser: User = null;
+
+  if (req.user !== undefined) {
+    const { companyId: cId } = req.user;
+    userCompanyId = cId;
+    requestUser = await User.findByPk(req.user.id);
   }
 
-  else if (
-    
-    req.url === "/signup" &&
-    (await CheckSettingsHelper("userCreation")) === "disabled"
-  ) {
-    throw new AppError("ERR_USER_CREATION_DISABLED", 403);
-  } else if (req.url !== "/signup" && req.user.profile !== "admin") {
+  const newUserCompanyId = bodyCompanyId || userCompanyId; 
+
+  if (req.url === "/signup") {
+    if (await CheckSettingsHelper("userCreation") === "disabled") {
+      throw new AppError("ERR_USER_CREATION_DISABLED", 403);
+    }
+  } else if (req.user?.profile !== "admin") {
     throw new AppError("ERR_NO_PERMISSION", 403);
+  } else if (newUserCompanyId !== req.user?.companyId && !requestUser?.super) {
+    throw new AppError("ERR_NO_SUPER", 403);
   }
 
   const user = await CreateUserService({
@@ -53,11 +73,14 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
     password,
     name,
     profile,
-    tenantId
+    companyId: newUserCompanyId,
+    queueIds,
+    whatsappId,
+	allTicket
   });
 
   const io = getIO();
-  io.emit(`${tenantId}:user`, {
+  io.to(`company-${userCompanyId}-mainchannel`).emit(`company-${userCompanyId}-user`, {
     action: "create",
     user
   });
@@ -67,9 +90,8 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
 
 export const show = async (req: Request, res: Response): Promise<Response> => {
   const { userId } = req.params;
-  const { tenantId } = req.user;
 
-  const user = await ShowUserService(userId, tenantId);
+  const user = await ShowUserService(userId);
 
   return res.status(200).json(user);
 };
@@ -78,18 +100,20 @@ export const update = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  // if (req.user.profile !== "admin") {
-  //   throw new AppError("ERR_NO_PERMISSION", 403);
-  // }
 
+  const { id: requestUserId, companyId } = req.user;
   const { userId } = req.params;
   const userData = req.body;
-  const { tenantId } = req.user;
 
-  const user = await UpdateUserService({ userData, userId, tenantId });
+  const user = await UpdateUserService({
+    userData,
+    userId,
+    companyId,
+    requestUserId: +requestUserId
+  });
 
   const io = getIO();
-  io.emit(`${tenantId}:user`, {
+  io.to(`company-${companyId}-mainchannel`).emit(`company-${companyId}-user`, {
     action: "update",
     user
   });
@@ -97,42 +121,35 @@ export const update = async (
   return res.status(200).json(user);
 };
 
-export const updateConfigs = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  // if (req.user.profile !== "admin") {
-  //   throw new AppError("ERR_NO_PERMISSION", 403);
-  // }
-
-  const { userId } = req.params;
-  const userConfigs = req.body;
-  const { tenantId } = req.user;
-
-  await UpdateUserConfigsService({ userConfigs, userId, tenantId });
-
-  return res.status(200).json();
-};
-
 export const remove = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   const { userId } = req.params;
-  const { tenantId } = req.user;
-  const userIdRequest = req.user.id;
+  const { companyId } = req.user;
 
   if (req.user.profile !== "admin") {
     throw new AppError("ERR_NO_PERMISSION", 403);
   }
 
-  await DeleteUserService(userId, tenantId, userIdRequest);
+  await DeleteUserService(userId, companyId);
 
   const io = getIO();
-  io.emit(`${tenantId}:user`, {
+  io.to(`company-${companyId}-mainchannel`).emit(`company-${companyId}-user`, {
     action: "delete",
     userId
   });
 
   return res.status(200).json({ message: "User deleted" });
+};
+
+export const list = async (req: Request, res: Response): Promise<Response> => {
+  const { companyId } = req.query;
+  const { companyId: userCompanyId } = req.user;
+
+  const users = await SimpleListService({
+    companyId: companyId ? +companyId : userCompanyId
+  });
+
+  return res.status(200).json(users);
 };

@@ -4,17 +4,29 @@ import Setting from "../../models/Setting";
 interface Request {
   key: string;
   value: string;
-  tenantId: string | number;
+  companyId: number;
 }
 
 const UpdateSettingService = async ({
   key,
   value,
-  tenantId
+  companyId
 }: Request): Promise<Setting | undefined> => {
-  const setting = await Setting.findOne({
-    where: { key, tenantId }
+  const [setting] = await Setting.findOrCreate({
+    where: {
+      key,
+      companyId
+    }, 
+    defaults: {
+      key,
+      value,
+      companyId
+    }
   });
+
+  if (setting != null && setting?.companyId !== companyId) {
+    throw new AppError("Não é possível consultar registros de outra empresa");
+  }
 
   if (!setting) {
     throw new AppError("ERR_NO_SETTING_FOUND", 404);

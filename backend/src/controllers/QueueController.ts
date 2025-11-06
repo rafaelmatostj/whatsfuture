@@ -1,92 +1,157 @@
-import * as Yup from "yup";
 import { Request, Response } from "express";
+import { getIO } from "../libs/socket";
+import CreateQueueService from "../services/QueueService/CreateQueueService";
+import DeleteQueueService from "../services/QueueService/DeleteQueueService";
+import ListQueuesService from "../services/QueueService/ListQueuesService";
+import ShowQueueService from "../services/QueueService/ShowQueueService";
+import UpdateQueueService from "../services/QueueService/UpdateQueueService";
+import { isNil } from "lodash";
+import Queue from "../models/Queue";
+import { head } from "lodash";
+import fs from "fs";
+import path from "path";
 import AppError from "../errors/AppError";
 
-import CreateQueueService from "../services/QueueServices/CreateQueueService";
-import ListQueueService from "../services/QueueServices/ListQueueService";
-import DeleteQueueService from "../services/QueueServices/DeleteQueueService";
-import UpdateQueueService from "../services/QueueServices/UpdateQueueService";
+type QueueFilter = {
+  companyId: number;
+};
 
-interface QueueData {
-  queue: string;
-  isActive: boolean;
-  userId: number;
-  tenantId: number | string;
-}
+export const index = async (req: Request, res: Response): Promise<Response> => {
+  const { companyId: userCompanyId } = req.user;
+  const { companyId: queryCompanyId } = req.query as unknown as QueueFilter;
+  let companyId = userCompanyId;
 
-export const store = async (req: Request, res: Response): Promise<Response> => {
-  const { tenantId } = req.user;
-  if (req.user.profile !== "admin") {
-    throw new AppError("ERR_NO_PERMISSION", 403);
+  if (!isNil(queryCompanyId)) {
+    companyId = +queryCompanyId;
   }
 
-  const newQueue: QueueData = { ...req.body, userId: req.user.id, tenantId };
+  const queues = await ListQueuesService({ companyId });
 
-  const schema = Yup.object().shape({
-    queue: Yup.string().required(),
-    userId: Yup.number().required(),
-    tenantId: Yup.number().required()
-  });
+  return res.status(200).json(queues);
+};
+
+export const mediaUpload = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { queueId } = req.params;
+  const files = req.files as Express.Multer.File[];
+  const file = head(files);
 
   try {
-    await schema.validate(newQueue);
-  } catch (error) {
-    throw new AppError(error.message);
-  }
+    const queue = await Queue.findByPk(queueId);
 
-  const queue = await CreateQueueService(newQueue);
+    queue.update({
+      mediaPath: file.filename,
+      mediaName: file.originalname
+    });
+
+    return res.send({ mensagem: "Arquivo Salvo" });
+  } catch (err: any) {
+    throw new AppError(err.message);
+  }
+};
+
+export const deleteMedia = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const {queueId} = req.params;
+
+  try {
+    const queue = await Queue.findByPk(queueId);
+    const filePath = path.resolve("public", `company${queue.companyId}`, queue.mediaPath);
+    const fileExists = fs.existsSync(filePath);
+    if (fileExists) {
+      fs.unlinkSync(filePath);
+    }
+
+    queue.mediaPath = null;
+    queue.mediaName = null;
+    await queue.save();
+    return res.send({mensagem: "Arquivo excluído"});
+  } catch (err: any) {
+    throw new AppError(err.message);
+  }
+};
+
+export const store = async (req: Request, res: Response): Promise<Response> => {
+  const { name, color, greetingMessage, outOfHoursMessage, schedules, orderQueue, integrationId, promptId } =
+    req.body;
+  const { companyId } = req.user;
+  console.log("queue", integrationId, promptId)
+  const queue = await CreateQueueService({
+    name,
+    color,
+    greetingMessage,
+    companyId,
+    outOfHoursMessage,
+    schedules,
+    orderQueue: orderQueue === "" ? null : orderQueue,
+    integrationId: integrationId === "" ? null : integrationId,
+    promptId: promptId === "" ? null : promptId
+  });
+
+  const io = getIO();
+  io.emit(`company-${companyId}-queue`, {
+    action: "update",
+    queue
+  });
 
   return res.status(200).json(queue);
 };
 
-export const index = async (req: Request, res: Response): Promise<Response> => {
-  const { tenantId } = req.user;
-  const queues = await ListQueueService({ tenantId });
-  return res.status(200).json(queues);
+export const show = async (req: Request, res: Response): Promise<Response> => {
+  const { queueId } = req.params;
+  const { companyId } = req.user;
+
+  const queue = await ShowQueueService(queueId, companyId);
+
+  return res.status(200).json(queue);
 };
 
 export const update = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { tenantId } = req.user;
-
-  if (req.user.profile !== "admin") {
-    throw new AppError("ERR_NO_PERMISSION", 403);
-  }
-  const queueData: QueueData = { ...req.body, userId: req.user.id, tenantId };
-
-  const schema = Yup.object().shape({
-    queue: Yup.string().required(),
-    isActive: Yup.boolean().required(),
-    userId: Yup.number().required()
-  });
-
-  try {
-    await schema.validate(queueData);
-  } catch (error) {
-    throw new AppError(error.message);
-  }
-
   const { queueId } = req.params;
-  const queueObj = await UpdateQueueService({
-    queueData,
-    queueId
+  const { companyId } = req.user;
+  const { name, color, greetingMessage, outOfHoursMessage, schedules, orderQueue, integrationId, promptId } =
+    req.body;
+  const queue = await UpdateQueueService(queueId, {
+    name,
+    color,
+    greetingMessage,
+    outOfHoursMessage,
+    schedules,
+    orderQueue: orderQueue === "" ? null : orderQueue,
+    integrationId: integrationId === "" ? null : integrationId,
+    promptId: promptId === "" ? null : promptId
+  }, companyId);
+
+  const io = getIO();
+  io.emit(`company-${companyId}-queue`, {
+    action: "update",
+    queue
   });
 
-  return res.status(200).json(queueObj);
+  return res.status(201).json(queue);
 };
 
 export const remove = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { tenantId } = req.user;
-  if (req.user.profile !== "admin") {
-    throw new AppError("ERR_NO_PERMISSION", 403);
-  }
   const { queueId } = req.params;
+  const { companyId } = req.user;
 
-  await DeleteQueueService({ id: queueId, tenantId });
-  return res.status(200).json({ message: "Queue deleted" });
+  await DeleteQueueService(queueId, companyId);
+
+  const io = getIO();
+  io.emit(`company-${companyId}-queue`, {
+    action: "delete",
+    queueId: +queueId
+  });
+
+  return res.status(200).send();
 };

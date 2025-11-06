@@ -1,10 +1,10 @@
+import { getIO } from "../../libs/socket";
 import Message from "../../models/Message";
 import Ticket from "../../models/Ticket";
-import socketEmit from "../../helpers/socketEmit";
+import Whatsapp from "../../models/Whatsapp";
 
 interface MessageData {
-  id?: string;
-  messageId: string;
+  id: string;
   ticketId: number;
   body: string;
   contactId?: number;
@@ -12,33 +12,36 @@ interface MessageData {
   read?: boolean;
   mediaType?: string;
   mediaUrl?: string;
-  timestamp?: number;
+  ack?: number;
+  queueId?: number;
+  isForwarded?: boolean;  
 }
 interface Request {
   messageData: MessageData;
-  tenantId: string | number;
+  companyId: number;
 }
 
 const CreateMessageService = async ({
   messageData,
-  tenantId
+  companyId
 }: Request): Promise<Message> => {
-  const msg = await Message.findOne({
-    where: { messageId: messageData.messageId, tenantId }
-  });
-  if (!msg) {
-    await Message.create({ ...messageData, tenantId });
-  } else {
-    await msg.update(messageData);
-  }
-  const message = await Message.findOne({
-    where: { messageId: messageData.messageId, tenantId },
+  await Message.upsert({ ...messageData, companyId });
+
+  const message = await Message.findByPk(messageData.id, {
     include: [
+      "contact",
       {
         model: Ticket,
         as: "ticket",
-        where: { tenantId },
-        include: ["contact"]
+        include: [
+          "contact",
+          "queue",
+          {
+            model: Whatsapp,
+            as: "whatsapp",
+            attributes: ["name"]
+          }
+        ]
       },
       {
         model: Message,
@@ -48,16 +51,26 @@ const CreateMessageService = async ({
     ]
   });
 
+  if (message.ticket.queueId !== null && message.queueId === null) {
+    await message.update({ queueId: message.ticket.queueId });
+  }
+
   if (!message) {
-    // throw new AppError("ERR_CREATING_MESSAGE", 501);
     throw new Error("ERR_CREATING_MESSAGE");
   }
 
-  socketEmit({
-    tenantId,
-    type: "chat:create",
-    payload: message
-  });
+  const io = getIO();
+  io.to(message.ticketId.toString())
+    .to(`company-${companyId}-${message.ticket.status}`)
+    .to(`company-${companyId}-notification`)
+    .to(`queue-${message.ticket.queueId}-${message.ticket.status}`)
+    .to(`queue-${message.ticket.queueId}-notification`)
+    .emit(`company-${companyId}-appMessage`, {
+      action: "create",
+      message,
+      ticket: message.ticket,
+      contact: message.ticket.contact
+    });
 
   return message;
 };

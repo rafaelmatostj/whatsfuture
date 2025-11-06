@@ -1,24 +1,22 @@
 import {
   Table,
   Column,
-  Model,
-  PrimaryKey,
-  ForeignKey,
-  BelongsTo,
-  AutoIncrement,
-  DataType,
   CreatedAt,
   UpdatedAt,
-  HasMany,
-  Default,
-  AfterFind
+  Model,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+  HasMany
 } from "sequelize-typescript";
-import CampaignContacts from "./CampaignContacts";
-import Tenant from "./Tenant";
-import User from "./User";
+import CampaignShipping from "./CampaignShipping";
+import Company from "./Company";
+import ContactList from "./ContactList";
 import Whatsapp from "./Whatsapp";
+import Files from "./Files";
 
-@Table
+@Table({ tableName: "Campaigns" })
 class Campaign extends Model<Campaign> {
   @PrimaryKey
   @AutoIncrement
@@ -28,60 +26,53 @@ class Campaign extends Model<Campaign> {
   @Column
   name: string;
 
-  @Column
-  start: Date;
-
-  @Default("pending")
-  @Column(
-    DataType.ENUM("pending", "scheduled", "processing", "canceled", "finished")
-  )
-  status: string;
-
-  @Column
+  @Column({ defaultValue: "" })
   message1: string;
 
-  @Column
+  @Column({ defaultValue: "" })
   message2: string;
 
-  @Column
+  @Column({ defaultValue: "" })
   message3: string;
 
-  @Column(DataType.STRING)
-  get mediaUrl(): string | null {
-    const value = this.getDataValue("mediaUrl");
-    if (value && value !== "null") {
-      const { BACKEND_URL } = process.env;
-      return `${BACKEND_URL}:${process.env.PROXY_PORT}/public/${value}`;
-    }
-    return null;
-  }
+  @Column({ defaultValue: "" })
+  message4: string;
+
+  @Column({ defaultValue: "" })
+  message5: string;
+
+  @Column({ defaultValue: "" })
+  confirmationMessage1: string;
+
+  @Column({ defaultValue: "" })
+  confirmationMessage2: string;
+
+  @Column({ defaultValue: "" })
+  confirmationMessage3: string;
+
+  @Column({ defaultValue: "" })
+  confirmationMessage4: string;
+
+  @Column({ defaultValue: "" })
+  confirmationMessage5: string;
+
+  @Column({ defaultValue: "INATIVA" })
+  status: string; // INATIVA, PROGRAMADA, EM_ANDAMENTO, CANCELADA, FINALIZADA
 
   @Column
-  mediaType: string;
+  confirmation: boolean;
 
-  @ForeignKey(() => User)
   @Column
-  userId: number;
+  mediaPath: string;
 
-  @BelongsTo(() => User)
-  user: User;
-
-  @ForeignKey(() => Whatsapp)
   @Column
-  sessionId: number;
+  mediaName: string;
 
-  @BelongsTo(() => Whatsapp)
-  session: Whatsapp;
-
-  @ForeignKey(() => Tenant)
   @Column
-  tenantId: number;
+  scheduledAt: Date;
 
-  @BelongsTo(() => Tenant)
-  tenant: Tenant;
-
-  @HasMany(() => CampaignContacts)
-  campaignContacts: CampaignContacts[];
+  @Column
+  completedAt: Date;
 
   @CreatedAt
   createdAt: Date;
@@ -89,49 +80,36 @@ class Campaign extends Model<Campaign> {
   @UpdatedAt
   updatedAt: Date;
 
+  @ForeignKey(() => Company)
   @Column
-  delay: number;
+  companyId: number;
 
-  @AfterFind
-  static async updatedInstances(instances: any): Promise<void | any> {
-    if (!Array.isArray(instances)) return instances;
-    const newInstances = await Promise.all(
-      // eslint-disable-next-line consistent-return
-      instances.map(async (instance: any) => {
-        if (!["pending", "finished", "canceled"].includes(instance.status)) {
-          const pendentesEntrega = +instance.dataValues.pendentesEntrega;
-          const pendentesEnvio = +instance.dataValues.pendentesEnvio;
-          const recebidas = +instance.dataValues.recebidas;
-          const lidas = +instance.dataValues.lidas;
-          const contactsCount = +instance.dataValues.contactsCount;
+  @BelongsTo(() => Company)
+  company: Company;
 
-          const totalTransacionado =
-            pendentesEntrega + pendentesEnvio + recebidas + lidas;
+  @ForeignKey(() => ContactList)
+  @Column
+  contactListId: number;
 
-          if (
-            instance.status === "scheduled" &&
-            contactsCount === pendentesEnvio
-          ) {
-            return instance;
-          }
+  @BelongsTo(() => ContactList)
+  contactList: ContactList;
 
-          if (contactsCount !== totalTransacionado) {
-            instance.status = "processing";
-            await instance.update({ status: "processing" });
-          }
+  @ForeignKey(() => Whatsapp)
+  @Column
+  whatsappId: number;
 
-          if (contactsCount === totalTransacionado) {
-            instance.status = "finished";
-            await instance.update({ status: "finished" });
-          }
+  @BelongsTo(() => Whatsapp)
+  whatsapp: Whatsapp;
 
-          return instance;
-        }
-        // ("pending", "scheduled", "processing", "canceled", "finished")
-      })
-    );
-    return newInstances;
-  }
+  @ForeignKey(() => Files)
+  @Column
+  fileListId: number;
+
+  @BelongsTo(() => Files)
+  fileList: Files;
+
+  @HasMany(() => CampaignShipping)
+  shipping: CampaignShipping[];
 }
 
 export default Campaign;

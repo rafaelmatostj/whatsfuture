@@ -10,23 +10,23 @@ import {
   HasMany,
   AutoIncrement,
   Default,
-  // AfterCreate,
-  DataType,
+  BeforeCreate,
+  BelongsToMany,
   AllowNull
 } from "sequelize-typescript";
+import { v4 as uuidv4 } from "uuid";
 
-import { format } from "date-fns";
 import Contact from "./Contact";
 import Message from "./Message";
+import Queue from "./Queue";
 import User from "./User";
 import Whatsapp from "./Whatsapp";
-import AutoReply from "./AutoReply";
-import StepsReply from "./StepsReply";
-import Queue from "./Queue";
-// import ShowStepAutoReplyMessageService from "../services/AutoReplyServices/ShowStepAutoReplyMessageService";
-import Tenant from "./Tenant";
-import MessagesOffLine from "./MessageOffLine";
-import ChatFlow from "./ChatFlow";
+import Company from "./Company";
+import QueueOption from "./QueueOption";
+import Tag from "./Tag";
+import TicketTag from "./TicketTag";
+import QueueIntegrations from "./QueueIntegrations";
+import Prompt from "./Prompt";
 
 @Table
 class Ticket extends Model<Ticket> {
@@ -44,45 +44,15 @@ class Ticket extends Model<Ticket> {
   @Column
   lastMessage: string;
 
-  @Column
-  channel: string;
-
-  @Default(true)
-  @Column
-  answered: boolean;
-
   @Default(false)
   @Column
   isGroup: boolean;
-
-  @Default(false)
-  @Column
-  isActiveDemand: boolean;
-
-  @Default(false)
-  @Column
-  isFarewellMessage: boolean;
 
   @CreatedAt
   createdAt: Date;
 
   @UpdatedAt
   updatedAt: Date;
-
-  @Column(DataType.DATE)
-  lastInteractionBot: Date;
-
-  @Column(DataType.INTEGER)
-  botRetries: number;
-
-  @Column(DataType.BIGINT)
-  closedAt: number;
-
-  @Column(DataType.BIGINT)
-  lastMessageAt: number;
-
-  @Column(DataType.BIGINT)
-  startedAttendanceAt: number;
 
   @ForeignKey(() => User)
   @Column
@@ -105,79 +75,80 @@ class Ticket extends Model<Ticket> {
   @BelongsTo(() => Whatsapp)
   whatsapp: Whatsapp;
 
-  @HasMany(() => Message)
-  messages: Message[];
-
-  @ForeignKey(() => AutoReply)
-  @Column
-  autoReplyId: number;
-
-  @BelongsTo(() => AutoReply)
-  autoReply: AutoReply;
-
-  @ForeignKey(() => StepsReply)
-  @Column
-  stepAutoReplyId: number;
-
-  @BelongsTo(() => StepsReply)
-  stepsReply: StepsReply;
-
-  @ForeignKey(() => ChatFlow)
-  @Column
-  chatFlowId: number;
-
-  @BelongsTo(() => ChatFlow)
-  chatFlow: ChatFlow;
-
-  @Default(null)
-  @AllowNull
-  @Column(DataType.INTEGER)
-  stepChatFlow: number;
-
   @ForeignKey(() => Queue)
-  @Default(null)
-  @AllowNull
   @Column
   queueId: number;
 
   @BelongsTo(() => Queue)
   queue: Queue;
 
-  @ForeignKey(() => Tenant)
   @Column
-  tenantId: number;
+  chatbot: boolean;
 
-  @Default(null)
-  @Column(DataType.VIRTUAL)
-  isTransference: string | boolean | null;
+  @ForeignKey(() => QueueOption)
+  @Column
+  queueOptionId: number;
 
-  @Default(null)
-  @Column(DataType.VIRTUAL)
-  isCreated: boolean | null;
+  @BelongsTo(() => QueueOption)
+  queueOption: QueueOption;
 
-  @Default([])
-  @Column(DataType.VIRTUAL)
-  scheduledMessages: Message[];
+  @HasMany(() => Message)
+  messages: Message[];
 
-  @BelongsTo(() => Tenant)
-  tenant: Tenant;
+  @HasMany(() => TicketTag)
+  ticketTags: TicketTag[];
 
-  @HasMany(() => MessagesOffLine)
-  messagesOffLine: MessagesOffLine[];
+  @BelongsToMany(() => Tag, () => TicketTag)
+  tags: Tag[];
 
-  @Default(null)
-  @AllowNull
-  @Column(DataType.JSONB)
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  apiConfig: object;
+  @ForeignKey(() => Company)
+  @Column
+  companyId: number;
 
-  @Column(DataType.VIRTUAL)
-  get protocol(): string {
-    const date = this.getDataValue("createdAt");
-    const formatDate = format(new Date(date), "yyyyddMMHHmmss");
-    const id = this.getDataValue("id");
-    return `${formatDate}${id}`;
+  @BelongsTo(() => Company)
+  company: Company;
+
+  @Default(uuidv4())
+  @Column
+  uuid: string;
+
+  @BeforeCreate
+  static setUUID(ticket: Ticket) {
+    ticket.uuid = uuidv4();
   }
+  
+  @Default(false)
+  @Column
+  useIntegration: boolean;
+
+  @ForeignKey(() => QueueIntegrations)
+  @Column
+  integrationId: number;
+
+  @BelongsTo(() => QueueIntegrations)
+  queueIntegration: QueueIntegrations;
+
+  @Column
+  typebotSessionId: string;
+
+  @Default(false)
+  @Column
+  typebotStatus: boolean
+
+  @ForeignKey(() => Prompt)
+  @Column
+  promptId: number;
+
+  @BelongsTo(() => Prompt)
+  prompt: Prompt;
+
+  @Column
+  fromMe: boolean;
+
+  @AllowNull(false)
+  @Default(0)
+  @Column
+  amountUsedBotQueues: number;
 }
 
 export default Ticket;

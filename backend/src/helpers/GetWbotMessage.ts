@@ -1,48 +1,40 @@
-import { Message as WbotMessage } from "whatsapp-web.js";
+import { proto } from "@whiskeysockets/baileys";
+import WALegacySocket from "@whiskeysockets/baileys"
 import Ticket from "../models/Ticket";
 import GetTicketWbot from "./GetTicketWbot";
 import AppError from "../errors/AppError";
-import { logger } from "../utils/logger";
+import GetMessageService from "../services/MessageServices/GetMessagesService";
+import Message from "../models/Message";
 
 export const GetWbotMessage = async (
   ticket: Ticket,
-  messageId: string,
-  totalMessages = 100
-): Promise<WbotMessage | undefined> => {
-  const wbot = await GetTicketWbot(ticket);
-
-  const wbotChat = await wbot.getChatById(
-    `${ticket.contact.number}@${ticket.isGroup ? "g" : "c"}.us`
-  );
+  messageId: string
+): Promise<proto.WebMessageInfo | Message> => {
+  const getSock = await GetTicketWbot(ticket);
 
   let limit = 20;
 
-  const fetchWbotMessagesGradually = async (): Promise<void | WbotMessage> => {
-    const chatMessages = await wbotChat.fetchMessages({ limit });
+  const fetchWbotMessagesGradually = async (): Promise<
+    proto.WebMessageInfo | Message | null | undefined
+  > => {
+      const msgFound = await GetMessageService({
+        id: messageId
+      });
 
-    const msgFound = chatMessages.find(msg => msg.id.id === messageId);
+      return msgFound;
 
-    if (!msgFound && limit < totalMessages) {
-      limit += 20;
-      return fetchWbotMessagesGradually();
-    }
 
-    return msgFound;
   };
 
   try {
     const msgFound = await fetchWbotMessagesGradually();
 
     if (!msgFound) {
-      console.error(
-        `Cannot found message within ${totalMessages} last messages`
-      );
-      return undefined;
+      throw new Error("Cannot found message within 100 last messages");
     }
 
     return msgFound;
   } catch (err) {
-    logger.error(err);
     throw new AppError("ERR_FETCH_WAPP_MSG");
   }
 };

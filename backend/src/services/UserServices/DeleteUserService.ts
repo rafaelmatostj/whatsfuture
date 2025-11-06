@@ -5,35 +5,25 @@ import UpdateDeletedUserOpenTicketsStatus from "../../helpers/UpdateDeletedUserO
 
 const DeleteUserService = async (
   id: string | number,
-  tenantId: string | number,
-  userIdRequest: string | number
+  companyId: number
 ): Promise<void> => {
   const user = await User.findOne({
-    where: { id, tenantId }
+    where: { id }
   });
 
-  if (!user || tenantId !== user.tenantId) {
+  if (!user) {
     throw new AppError("ERR_NO_USER_FOUND", 404);
   }
 
   const userOpenTickets: Ticket[] = await user.$get("tickets", {
-    where: { status: "open", tenantId }
+    where: { status: "open" }
   });
 
   if (userOpenTickets.length > 0) {
-    UpdateDeletedUserOpenTicketsStatus(
-      userOpenTickets,
-      tenantId,
-      userIdRequest
-    );
+    UpdateDeletedUserOpenTicketsStatus(userOpenTickets, companyId);
   }
-  
-    try {
-    await user.destroy();
-  } catch (error) {
-    throw new AppError("ERROR_USER_MESSAGES_NOT_EXISTS", 404);
-  }
-  
+
+  await user.destroy();
 };
 
 export default DeleteUserService;

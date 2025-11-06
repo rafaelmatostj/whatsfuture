@@ -1,21 +1,32 @@
+import * as Yup from "yup";
+
 import AppError from "../../errors/AppError";
-import { getIO } from "../../libs/socket";
 import Whatsapp from "../../models/Whatsapp";
-import { logger } from "../../utils/logger";
+import Company from "../../models/Company";
+import Plan from "../../models/Plan";
+import AssociateWhatsappQueue from "./AssociateWhatsappQueue";
 
 interface Request {
   name: string;
+  companyId: number;
+  queueIds?: number[];
+  greetingMessage?: string;
+  complationMessage?: string;
+  outOfHoursMessage?: string;
+  ratingMessage?: string;
   status?: string;
   isDefault?: boolean;
-  tenantId: string | number;
-  tokenTelegram?: string;
-  instagramUser?: string;
-  instagramKey?: string;
-  wabaBSP?: string;
-  tokenAPI?: string;
-  fbPageId?: string;
-  farewellMessage?: string;
-  type: "waba" | "instagram" | "telegram" | "whatsapp" | "messenger";
+  token?: string;
+  provider?: string;
+  //sendIdQueue?: number;
+  //timeSendQueue?: number;
+  transferQueueId?: number;
+  timeToTransfer?: number;    
+  promptId?: number;
+  maxUseBotQueues?: number;
+  timeUseBotQueues?: number;
+  expiresTicket?: number;
+  expiresInactiveMessage?: string;
 }
 
 interface Response {
@@ -25,72 +36,143 @@ interface Response {
 
 const CreateWhatsAppService = async ({
   name,
-  status = "DISCONNECTED",
-  tenantId,
-  tokenTelegram,
-  instagramUser,
-  instagramKey,
-  type,
-  wabaBSP,
-  tokenAPI,
-  fbPageId,
-  farewellMessage,
-  isDefault = false
+  status = "OPENING",
+  queueIds = [],
+  greetingMessage,
+  complationMessage,
+  outOfHoursMessage,
+  ratingMessage,
+  isDefault = false,
+  companyId,
+  token = "",
+  provider = "beta",
+  //timeSendQueue,
+  //sendIdQueue,
+  transferQueueId,
+  timeToTransfer,    
+  promptId,
+  maxUseBotQueues = 3,
+  timeUseBotQueues = 0,
+  expiresTicket = 0,
+  expiresInactiveMessage = ""
 }: Request): Promise<Response> => {
-  if (type === "waba" && (!tokenAPI || !wabaBSP)) {
-    throw new AppError("WABA: favor informar o Token e a BSP");
-  }
-
-  if (type === "instagram" && !instagramUser) {
-    throw new AppError(
-      "Instagram: favor informar o Usuário e senha corretamente."
-    );
-  }
-
-  if (type === "telegram" && !tokenTelegram) {
-    throw new AppError("Telegram: favor informar o Token.");
-  }
-
-  const whatsappFound = await Whatsapp.findOne({
-    where: { tenantId, isDefault: true }
+  const company = await Company.findOne({
+    where: {
+      id: companyId
+    },
+    include: [{ model: Plan, as: "plan" }]
   });
 
-  if (!whatsappFound) {
-    isDefault = !whatsappFound;
-  }
+  if (company !== null) {
+    const whatsappCount = await Whatsapp.count({
+      where: {
+        companyId
+      }
+    });
 
-  if (isDefault) {
-    if (whatsappFound) {
-      await whatsappFound.update({ isDefault: false });
+    if (whatsappCount >= company.plan.connections) {
+      throw new AppError(
+        `Número máximo de conexões já alcançado: ${whatsappCount}`
+      );
     }
   }
 
+  const schema = Yup.object().shape({
+    name: Yup.string()
+      .required()
+      .min(2)
+      .test(
+        "Check-name",
+        "Esse nome já está sendo utilizado por outra conexão",
+        async value => {
+          if (!value) return false;
+          const nameExists = await Whatsapp.findOne({
+            where: { name: value, companyId}
+          });
+          return !nameExists;
+        }
+      ),
+    isDefault: Yup.boolean().required()
+  });
+
   try {
-    const whatsapp = await Whatsapp.create({
-      name,
-      status,
-      isDefault,
-      tenantId,
-      tokenTelegram,
-      instagramUser,
-      instagramKey,
-      type,
-      wabaBSP,
-      tokenAPI,
-      fbPageId,
-      farewellMessage
+    await schema.validate({ name, status, isDefault });
+  } catch (err: any) {
+    throw new AppError(err.message);
+  }
+
+  const whatsappFound = await Whatsapp.findOne({ where: { companyId } });
+
+  isDefault = !whatsappFound;
+
+  let oldDefaultWhatsapp: Whatsapp | null = null;
+
+  if (isDefault) {
+    oldDefaultWhatsapp = await Whatsapp.findOne({
+      where: { isDefault: true, companyId }
     });
-    const io = getIO();
-    io.emit(`${tenantId}:whatsapp`, {
-      action: "update",
-      whatsapp
+    if (oldDefaultWhatsapp) {
+      await oldDefaultWhatsapp.update({ isDefault: false, companyId });
+    }
+  }
+
+  if (queueIds.length > 1 && !greetingMessage) {
+    throw new AppError("ERR_WAPP_GREETING_REQUIRED");
+  }
+
+  if (token !== null && token !== "") {
+    const tokenSchema = Yup.object().shape({
+      token: Yup.string()
+        .required()
+        .min(2)
+        .test(
+          "Check-token",
+          "This whatsapp token is already used.",
+          async value => {
+            if (!value) return false;
+            const tokenExists = await Whatsapp.findOne({
+              where: { token: value }
+            });
+            return !tokenExists;
+          }
+        )
     });
 
-    return { whatsapp, oldDefaultWhatsapp: whatsappFound };
-  } catch (error) {
-    logger.error(error);
-    throw new AppError("ERR_CREATE_WAPP", 404);
+    try {
+      await tokenSchema.validate({ token });
+    } catch (err: any) {
+      throw new AppError(err.message);
+    }
   }
+
+  const whatsapp = await Whatsapp.create(
+    {
+      name,
+      status,
+      greetingMessage,
+      complationMessage,
+      outOfHoursMessage,
+      ratingMessage,
+      isDefault,
+      companyId,
+      token,
+      provider,
+      //timeSendQueue,
+      //sendIdQueue,
+	  transferQueueId,
+	  timeToTransfer,	  
+      promptId,
+      maxUseBotQueues,
+      timeUseBotQueues,
+      expiresTicket,
+      expiresInactiveMessage
+    },
+    { include: ["queues"] }
+  );
+
+  await AssociateWhatsappQueue(whatsapp, queueIds);
+
+  return { whatsapp, oldDefaultWhatsapp };
 };
 
 export default CreateWhatsAppService;

@@ -1,14 +1,11 @@
-import { Sequelize, Op, QueryTypes } from "sequelize";
+import { Sequelize, Op } from "sequelize";
 import Contact from "../../models/Contact";
-import { logger } from "../../utils/logger";
-import sequelize from "../../database";
+import Ticket from "../../models/Ticket";
 
 interface Request {
   searchParam?: string;
   pageNumber?: string;
-  tenantId: string | number;
-  profile: string;
-  userId: string | number;
+  companyId: number;
 }
 
 interface Response {
@@ -20,65 +17,40 @@ interface Response {
 const ListContactsService = async ({
   searchParam = "",
   pageNumber = "1",
-  tenantId,
-  profile,
-  userId
+  companyId
 }: Request): Promise<Response> => {
-  const limit = 40;
+  const whereCondition = {
+    [Op.or]: [
+      {
+        name: Sequelize.where(
+          Sequelize.fn("LOWER", Sequelize.col("name")),
+          "LIKE",
+          `%${searchParam.toLowerCase().trim()}%`
+        )
+      },
+      { number: { [Op.like]: `%${searchParam.toLowerCase().trim()}%` } }
+    ],
+    companyId: {
+      [Op.eq]: companyId
+    }
+  };
+  const limit = 30;
   const offset = limit * (+pageNumber - 1);
 
-  const where = `
-    "Contact"."tenantId" = ${tenantId}
-    and (LOWER("Contact"."name") like '%${searchParam.toLowerCase().trim()}%'
-        or "Contact"."number" like '%${searchParam.toLowerCase().trim()}%')
-    and (('${profile}' = 'admin') or (("cw"."walletId" = ${userId}) or ("cw"."walletId" is null)))
-  `;
-
-  const queryCount = `
-    select count(*)
-    from "Contacts" as "Contact"
-    left join "ContactWallets" cw on cw."contactId" = "Contact".id
-    where ${where}
-  `;
-
-  const query = `
-    select
-      distinct
-      "Contact"."id",
-      "Contact"."name",
-      "Contact"."number",
-      "Contact"."email",
-      "Contact"."profilePicUrl",
-      "Contact"."pushname",
-      "Contact"."telegramId",
-      "Contact"."messengerId",
-      "Contact"."instagramPK",
-      "Contact"."isUser",
-      "Contact"."isWAContact",
-      "Contact"."isGroup",
-      "Contact"."tenantId",
-      "Contact"."createdAt",
-      "Contact"."updatedAt",
-      "cw"."walletId",
-      "u"."name" as "wallet"
-    from
-      "Contacts" as "Contact"
-    left join "ContactWallets" cw on cw."contactId" = "Contact".id
-    left join "Users" u on cw."walletId" = u."id"
-    where ${where}
-    order by "Contact"."name" asc
-    limit ${limit} offset ${offset}
-  `;
-
-  const contacts: Contact[] = await sequelize.query(query, {
-    type: QueryTypes.SELECT
+  const { count, rows: contacts } = await Contact.findAndCountAll({
+    where: whereCondition,
+    limit,
+    include: [
+      {
+        model: Ticket,
+        as: "tickets",
+        attributes: ["id", "status", "createdAt", "updatedAt"]
+      }
+    ],
+    offset,
+    order: [["name", "ASC"]]
   });
 
-  const data: any = await sequelize.query(queryCount, {
-    type: QueryTypes.SELECT
-  });
-
-  const count = (data && data[0]?.count) || 0;
   const hasMore = count > offset + contacts.length;
 
   return {
